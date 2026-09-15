@@ -8,273 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Spectral:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --paper:       #f2efe6;
-    --ink:         #201f1c;
-    --soft:        #5b584f;
-    --muted:       #6b6961;
-    --accent:      #a8431f;
-    --rule:        rgba(32, 31, 28, 0.16);
-    --rule-strong: rgba(32, 31, 28, 0.42);
-
-    --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-    --body:  'Spectral', Georgia, 'Times New Roman', serif;
-    --mono:  'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-
-    --gutter: clamp(20px, 5.5vw, 100px);
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--body);
-    font-weight: 300;
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .wrap { padding: clamp(24px, 4vw, 44px) var(--gutter) clamp(56px, 8vw, 92px); }
-
-  a { color: inherit; text-decoration: none; }
-  a:hover { color: var(--accent); }
-
-  .mono {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* ---------- masthead ---------- */
-
-  .masthead {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px 30px;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--rule-strong);
-  }
-  .masthead nav { display: flex; gap: 30px; }
-  .masthead nav a[aria-current="page"] { color: var(--ink); }
-
-  /* ---------- hero ---------- */
-
-  .hero {
-    position: relative;
-    padding: clamp(52px, 8vw, 92px) 0 clamp(52px, 7vw, 84px);
-  }
-  .hero-grid {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 430px;
-    gap: clamp(36px, 5vw, 76px);
-    align-items: end;
-  }
-  .grid-wash {
-    position: absolute;
-    inset: 40px 0 0 0;
-    background-image:
-      repeating-linear-gradient(to right,  rgba(32,31,28,0.05) 0 1px, transparent 1px 48px),
-      repeating-linear-gradient(to bottom, rgba(32,31,28,0.05) 0 1px, transparent 1px 48px);
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
-    pointer-events: none;
-  }
-  .eyebrow {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-  h1 {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: clamp(58px, 10.5vw, 124px);
-    line-height: 0.94;
-    letter-spacing: -0.012em;
-    margin: 26px 0 0;
-  }
-  h1 em { font-style: italic; color: var(--accent); }
-  .lede {
-    max-width: 470px;
-    margin: clamp(22px, 3vw, 32px) 0 0;
-    font-size: clamp(17px, 1.4vw, 19px);
-    line-height: 1.64;
-    color: #45433d;
-    text-wrap: pretty;
-  }
-  .status {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-top: 30px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .status::before {
-    content: "";
-    width: 34px;
-    height: 1px;
-    background: var(--rule-strong);
-    flex: none;
-  }
-
-  .figure {
-    border: 1px solid rgba(32, 31, 28, 0.3);
-    background: rgba(255, 255, 255, 0.42);
-    padding: 16px 18px 10px;
-  }
-  .figure svg { display: block; width: 100%; height: auto; }
-
-  /* ---------- section headers ---------- */
-
-  .section-head {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 20px;
-    justify-content: space-between;
-    align-items: baseline;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--rule-strong);
-  }
-  .section-head h2 {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: clamp(30px, 3.4vw, 36px);
-    margin: 0;
-  }
-  .section-head .mono { font-size: 10px; letter-spacing: 0.16em; }
-
-  .spacer { height: clamp(56px, 8vw, 88px); }
-
-  /* ---------- work index ---------- */
-
-  ul.index { list-style: none; margin: 0; padding: 0; }
-
-  .col-head,
-  .work-row {
-    display: grid;
-    grid-template-columns: 54px minmax(0, 1fr) 230px 80px;
-    gap: 30px;
-  }
-  .col-head {
-    padding: 14px 0 12px;
-    border-bottom: 1px solid var(--rule);
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .col-head span:last-child { text-align: right; }
-
-  .work-row {
-    align-items: start;
-    padding: 24px 0;
-    border-bottom: 1px solid var(--rule);
-  }
-  .work-idx  { font-family: var(--mono); font-size: 12px; color: var(--accent); }
-  .work-name { font-family: var(--serif); font-size: clamp(26px, 2.6vw, 30px); line-height: 1.16; }
-  .work-desc { font-size: 16px; line-height: 1.6; color: var(--soft); margin-top: 5px; max-width: 490px; }
-  .work-stack { font-family: var(--mono); font-size: 11px; color: #45433d; line-height: 1.7; }
-  .work-year  { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; }
-
-  /* ---------- writing ---------- */
-
-  .post-row {
-    display: grid;
-    grid-template-columns: 138px minmax(0, 1fr);
-    gap: 40px;
-    padding: 30px 0;
-    border-bottom: 1px solid var(--rule);
-  }
-  .post-date {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding-top: 9px;
-  }
-  .post-title { font-family: var(--serif); font-size: clamp(26px, 2.7vw, 31px); line-height: 1.18; }
-  .post-excerpt { margin: 10px 0 0; font-size: 16px; line-height: 1.66; color: var(--soft); max-width: 620px; text-wrap: pretty; }
-
-  .empty-note {
-    padding: 30px 0;
-    border-bottom: 1px solid var(--rule);
-    font-size: 17px;
-    line-height: 1.66;
-    color: var(--soft);
-    max-width: 620px;
-  }
-
-  /* ---------- footer ---------- */
-
-  .site-foot {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px 28px;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: clamp(56px, 8vw, 84px);
-    padding-top: 24px;
-    border-top: 1px solid var(--rule-strong);
-  }
-  .site-foot .name { font-family: var(--serif); font-size: 22px; }
-  .site-foot nav { display: flex; gap: 28px; }
-
-  /* ---------- tablet ---------- */
-
-  @media (max-width: 900px) {
-    .hero-grid { grid-template-columns: minmax(0, 1fr); align-items: start; }
-    .figure { max-width: 520px; }
-    .col-head, .work-row { grid-template-columns: 44px minmax(0, 1fr) 150px; }
-    .col-head span:nth-child(4), .work-year { display: none; }
-    .post-row { grid-template-columns: 110px minmax(0, 1fr); gap: 28px; }
-  }
-
-  /* ---------- phone ---------- */
-
-  @media (max-width: 620px) {
-    .masthead nav { gap: 20px; }
-    .masthead nav a:last-child { display: none; }
-
-    .grid-wash { display: none; }
-
-    .status { align-items: flex-start; }
-    .status::before { margin-top: 8px; }
-
-    .col-head { display: none; }
-
-    .work-row {
-      grid-template-columns: 34px minmax(0, 1fr);
-      gap: 0 16px;
-      padding: 22px 0;
-    }
-    .work-stack {
-      grid-column: 2;
-      margin-top: 10px;
-      letter-spacing: 0.04em;
-    }
-
-    .post-row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
-    .post-date { padding-top: 0; }
-
-    .site-foot { align-items: flex-start; flex-direction: column; }
-    .site-foot nav { gap: 22px; }
-  }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -285,7 +19,7 @@
     <nav class="mono">
       <a href="#work" aria-current="page">Work</a>
       <a href="#writing">Writing</a>
-      <a href="#about">About</a>
+      <a href="#about" class="optional">About</a>
     </nav>
   </header>
 
@@ -338,7 +72,7 @@
 
        TO ADD A PROJECT:    copy one whole <li class="work-row"> ... </li>
                             block below, paste it where you want it in the
-                            list, and edit the four fields.
+                            list, and edit the fields.
        TO REMOVE A PROJECT: delete its whole <li> block.
        TO REORDER:          cut and paste the blocks. Renumber the
                             work-idx values (001, 002, 003 ...) by hand.
@@ -401,12 +135,11 @@
   <!-- ==================================================================
        WRITING
 
-       TO ADD A POST:    copy one whole <li class="post-row"> ... </li>
-                         block from the template below, put it at the TOP
-                         of the list so newest is first, and edit it.
-       TO REMOVE A POST: delete its whole <li> block.
-
-       Once you have a real post, delete the <li class="empty-note"> block.
+       Each entry links to its own page under writing/.
+       TO ADD A POST:    add a <li class="post-row"> block at the TOP of the
+                         list so newest is first, and create the matching
+                         page under writing/.
+       TO REMOVE A POST: delete its <li> block and the page file.
        ================================================================== -->
 
   <section id="writing">
@@ -417,17 +150,15 @@
 
     <ul class="index">
 
-      <li class="empty-note">Nothing published yet. First piece is in progress.</li>
-
-      <!-- TEMPLATE - copy the block below, remove the comment markers, fill it in.
       <li class="post-row">
         <div class="post-date">2026.09</div>
         <div>
-          <div class="post-title">The title of the piece</div>
-          <p class="post-excerpt">Two sentences of setup. Say what the question was and why the obvious answer was wrong.</p>
+          <a href="writing/lorem-ipsum-dolor-sit-amet.html">
+            <div class="post-title">Lorem Ipsum Dolor Sit Amet</div>
+            <p class="post-excerpt">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+          </a>
         </div>
       </li>
-      -->
 
     </ul>
   </section>

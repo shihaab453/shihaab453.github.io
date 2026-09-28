@@ -697,8 +697,9 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
       col *= mix(mix(0.50, 0.85, warm), 1.10, plume);
       col = pow(col, vec3(0.92));
 
-      // the Writing band is mostly dark, with the colour pushed to the edges
-      col = mix(col, col * mix(0.30, 0.80, warm), dim);
+      // deep, dark blue on the cool side in both places; the Writing band also
+      // dims its orange a little so the text over it stays calm
+      col = mix(col * mix(0.32, 1.0, warm), col * mix(0.30, 0.80, warm), dim);
 
       gl_FragColor = vec4(col, 1.0);
     }`;

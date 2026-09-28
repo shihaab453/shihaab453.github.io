@@ -12,6 +12,14 @@ if (GOATCOUNTER) {
   document.head.appendChild(gc);
 }
 
+// Email links: the address sits in the page as data-mail="name|domain" so spam bots
+// scanning the source don't find it; it's put together here, in the browser.
+document.querySelectorAll('[data-mail]').forEach(a => {
+  const [name, domain] = a.dataset.mail.split('|');
+  a.href = 'mailto:' + name + '@' + domain;
+  if (a.hasAttribute('data-mail-text')) a.textContent = name + '@' + domain;
+});
+
 // Sections with the dark smoke background (homepage hero, Writing band, post header).
 const SMOKE = '.hero, .band, .post-hero';
 

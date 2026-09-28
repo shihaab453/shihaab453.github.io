@@ -384,6 +384,13 @@ h2 {
 
 .contact { text-align: center; padding: clamp(96px, 11vw, 140px) var(--pad); }
 .contact .ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 36px; }
+.mail-line { margin: 22px 0 0; font-family: var(--mono); font-size: 14px; color: var(--grey); }
+.mail-line a:hover { color: var(--orange); }
+@media (max-width: 560px) {
+  .contact .ctas .btn { justify-content: center; }
+  .contact .ctas .btn-black { flex-basis: 100%; }
+  .contact .ctas .btn-outline { flex: 1; }
+}
 
 footer {
   background: var(--ink);

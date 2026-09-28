@@ -650,6 +650,8 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
     uniform vec2 res;
     uniform float t;
     uniform float dim;
+    uniform vec4 stir[12];     // mouse trail: xy = where (0..1), zw = velocity
+    uniform float stirAmt[12]; // how much of each is left (fades out)
 
     float hash(vec2 p) {
       p = fract(p * vec2(123.34, 456.21));
@@ -673,6 +675,20 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
       vec2 uv = gl_FragCoord.xy / res;
       vec2 p = vec2(uv.x * res.x / res.y, uv.y) * 0.85;
       p.x -= t * 0.012;                         // the whole field drifts right, slowly
+
+      // mouse stirring: each recent trail point pushes the smoke along the direction
+      // the mouse was moving, with a little curl, fading out over a second or two
+      vec2 st = vec2(uv.x * res.x / res.y, uv.y);
+      vec2 push = vec2(0.0);
+      for (int i = 0; i < 12; i++) {
+        float a = stirAmt[i];
+        if (a <= 0.0) continue;
+        vec4 s = stir[i];
+        vec2 d = st - vec2(s.x * res.x / res.y, s.y);
+        float fall = exp(-dot(d, d) / 0.03);
+        push += (s.zw + vec2(-d.y, d.x) * length(s.zw) * 2.5) * fall * a;
+      }
+      p -= push * 0.16;
 
       // domain warping: noise bent by noise, which is what makes it curl like smoke
       vec2 q = vec2(fbm(p + vec2(0.0, t * 0.012)),
@@ -706,6 +722,49 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
 
   const VERT = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0.0, 1.0); }';
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  // Records where the mouse has recently moved over the hero, and how fast.
+  // Only on devices with a real mouse; phones and tablets never get this.
+  function trail(canvas) {
+    const N = 12, LIFE = 1.8;
+    const pos = new Float32Array(N * 4), amt = new Float32Array(N), born = new Float64Array(N).fill(-1e9);
+    const hero = canvas.closest('.hero');
+    let next = 0, last = null, vx = 0, vy = 0, lastDrop = 0;
+    addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse') return;
+      const now = performance.now();
+      const hr = hero.getBoundingClientRect();
+      if (e.clientY < hr.top || e.clientY > hr.bottom) { last = null; return; }
+      const r = canvas.getBoundingClientRect();
+      if (last) {
+        const dt = Math.max(8, now - last.t) / 1000;
+        // velocity in canvas-height units per second, smoothed and capped
+        const nx = (e.clientX - last.x) / r.height / dt, ny = -(e.clientY - last.y) / r.height / dt;
+        vx += (nx - vx) * 0.35; vy += (ny - vy) * 0.35;
+        const sp = Math.hypot(vx, vy), cap = 2.5;
+        if (sp > cap) { vx *= cap / sp; vy *= cap / sp; }
+      }
+      last = { x: e.clientX, y: e.clientY, t: now };
+      if (now - lastDrop < 45 || Math.hypot(vx, vy) < 0.05) return;
+      lastDrop = now;
+      const i = next; next = (next + 1) % N;
+      pos[i * 4]     = (e.clientX - r.left) / r.width;
+      pos[i * 4 + 1] = 1 - (e.clientY - r.top) / r.height;
+      pos[i * 4 + 2] = vx;
+      pos[i * 4 + 3] = vy;
+      born[i] = now;
+    }, { passive: true });
+    return {
+      pos, amt,
+      update(now) {
+        for (let i = 0; i < N; i++) {
+          const age = (now - born[i]) / 1000;
+          amt[i] = age < LIFE ? Math.pow(1 - age / LIFE, 2) : 0;
+        }
+      },
+    };
+  }
 
   function flow(canvas) {
     const gl = canvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false });
@@ -734,6 +793,9 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
     const uRes = gl.getUniformLocation(prog, 'res');
     const uT = gl.getUniformLocation(prog, 't');
     gl.uniform1f(gl.getUniformLocation(prog, 'dim'), +canvas.dataset.dim || 0);
+    const stirTrail = canvas.closest('.hero') && finePointer && !still ? trail(canvas) : null;
+    const uStir = gl.getUniformLocation(prog, 'stir');
+    const uStirAmt = gl.getUniformLocation(prog, 'stirAmt');
 
     const size = () => {
       const w = Math.max(1, Math.round(canvas.clientWidth / 4));
@@ -748,6 +810,11 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
     const draw = now => {
       size();
       gl.uniform1f(uT, t0 + now / 1000);
+      if (stirTrail) {
+        stirTrail.update(performance.now());
+        gl.uniform4fv(uStir, stirTrail.pos);
+        gl.uniform1fv(uStirAmt, stirTrail.amt);
+      }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 

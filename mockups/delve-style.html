@@ -500,12 +500,11 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
   <div class="frame" id="work">
     <div class="section-intro">
       <h2>Selected work.</h2>
-      <p class="lead">Two projects from 2026.</p>
     </div>
 
     <article class="project">
       <div class="copy">
-        <span class="step">1/2</span>
+        <span class="step">#001</span>
         <h3>WCA Analysis</h3>
         <p>Statistical study of two decades of speedcubing competition results, from world records down to regional depth.</p>
         <div class="stack">
@@ -525,7 +524,7 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
 
     <article class="project">
       <div class="copy">
-        <span class="step">2/2</span>
+        <span class="step">#002</span>
         <h3>DualSense Quick Menu</h3>
         <p>A native Windows overlay exposing PS5 controller settings without leaving the running game.</p>
         <div class="stack">
@@ -650,8 +649,10 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
     uniform vec2 res;
     uniform float t;
     uniform float dim;
-    uniform vec4 stir[12];     // mouse trail: xy = where (0..1), zw = velocity
-    uniform float stirAmt[12]; // how much of each is left (fades out)
+    uniform sampler2D stirMap; // lasting mouse stirs (see STIR below), when supported
+    uniform float useMap;
+    uniform vec4 stir[12];     // fallback: short mouse trail, xy = where (0..1), zw = velocity
+    uniform float stirAmt[12]; // how much of each trail point is left (fades out)
 
     float hash(vec2 p) {
       p = fract(p * vec2(123.34, 456.21));
@@ -676,19 +677,24 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
       vec2 p = vec2(uv.x * res.x / res.y, uv.y) * 0.85;
       p.x -= t * 0.012;                         // the whole field drifts right, slowly
 
-      // mouse stirring: each recent trail point pushes the smoke along the direction
-      // the mouse was moving, with a little curl, fading out over a second or two
-      vec2 st = vec2(uv.x * res.x / res.y, uv.y);
+      // mouse stirring: read how far the smoke here has been pushed
       vec2 push = vec2(0.0);
-      for (int i = 0; i < 12; i++) {
-        float a = stirAmt[i];
-        if (a <= 0.0) continue;
-        vec4 s = stir[i];
-        vec2 d = st - vec2(s.x * res.x / res.y, s.y);
-        float fall = exp(-dot(d, d) / 0.03);
-        push += (s.zw + vec2(-d.y, d.x) * length(s.zw) * 2.5) * fall * a;
+      if (useMap > 0.5) {
+        push = texture2D(stirMap, uv).xy;
+      } else {
+        // fallback: each recent trail point pushes along the mouse's direction, with a
+        // little curl, fading out over a second or two
+        vec2 st = vec2(uv.x * res.x / res.y, uv.y);
+        for (int i = 0; i < 12; i++) {
+          float a = stirAmt[i];
+          if (a <= 0.0) continue;
+          vec4 s = stir[i];
+          vec2 d = st - vec2(s.x * res.x / res.y, s.y);
+          float fall = exp(-dot(d, d) / 0.03);
+          push += (s.zw + vec2(-d.y, d.x) * length(s.zw) * 2.5) * fall * a * 0.16;
+        }
       }
-      p -= push * 0.16;
+      p -= push;
 
       // domain warping: noise bent by noise, which is what makes it curl like smoke
       vec2 q = vec2(fbm(p + vec2(0.0, t * 0.012)),
@@ -721,40 +727,182 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
     }`;
 
   const VERT = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0.0, 1.0); }';
+
+  // The stir map: a small image the smoke reads to see how far each spot has been pushed.
+  // Every frame it's redrawn from the previous frame: carried right with the drift, new
+  // mouse moves added in, and old stirs held for ~10s before easing back by ~25-30s.
+  // xy = push, z = seconds since that spot was last stirred (/60).
+  const STIR = `
+    precision highp float;
+    uniform sampler2D prev;
+    uniform vec2 mapRes;
+    uniform float aspect;     // canvas width / height
+    uniform float shift;      // how far the smoke drifted right this frame (0..1 across)
+    uniform float dt;
+    uniform vec4 seg[16];     // mouse moves since last frame: xy = where (0..1), zw = movement
+    uniform float segCount;
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / mapRes;
+      vec2 from = uv - vec2(shift, 0.0);
+      vec4 old = from.x < 0.0 ? vec4(0.0, 0.0, 1.0, 1.0) : texture2D(prev, from);
+      vec2 push = old.xy;
+      float age = old.z * 60.0;
+
+      vec2 st = vec2(uv.x * aspect, uv.y);
+      float touched = 0.0;
+      for (int i = 0; i < 16; i++) {
+        if (float(i) >= segCount) break;
+        vec4 s = seg[i];
+        vec2 d = st - vec2(s.x * aspect, s.y);
+        float fall = exp(-dot(d, d) / 0.025);
+        push += (s.zw + vec2(-d.y, d.x) * length(s.zw) * 6.0) * fall * 2.4;
+        touched = max(touched, fall);
+      }
+      age = mix(age + dt, 0.0, smoothstep(0.15, 0.6, touched));
+
+      push *= exp(-dt * 0.22 * smoothstep(8.0, 18.0, age));
+      float len = length(push);
+      if (len > 0.9) push *= 0.9 / len;
+
+      gl_FragColor = vec4(push, min(age, 60.0) / 60.0, 1.0);
+    }`;
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  // Records where the mouse has recently moved over the hero, and how fast.
-  // Only on devices with a real mouse; phones and tablets never get this.
-  function trail(canvas) {
-    const N = 12, LIFE = 1.8;
-    const pos = new Float32Array(N * 4), amt = new Float32Array(N), born = new Float64Array(N).fill(-1e9);
+  function program(gl, vsrc, fsrc) {
+    const sh = (type, src) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+    };
+    const vs = sh(gl.VERTEX_SHADER, vsrc), fs = sh(gl.FRAGMENT_SHADER, fsrc);
+    if (!vs || !fs) return null;
+    const p = gl.createProgram();
+    gl.attachShader(p, vs);
+    gl.attachShader(p, fs);
+    gl.bindAttribLocation(p, 0, 'a');
+    gl.linkProgram(p);
+    return gl.getProgramParameter(p, gl.LINK_STATUS) ? p : null;
+  }
+
+  // Watches the mouse over the hero. Calls onMove(x, y, dx, dy) in canvas terms:
+  // x, y from 0 to 1 (y up), dx, dy the movement in canvas heights.
+  function watchMouse(canvas, onMove) {
     const hero = canvas.closest('.hero');
-    let next = 0, last = null, vx = 0, vy = 0, lastDrop = 0;
+    let last = null;
     addEventListener('pointermove', e => {
       if (e.pointerType !== 'mouse') return;
-      const now = performance.now();
       const hr = hero.getBoundingClientRect();
       if (e.clientY < hr.top || e.clientY > hr.bottom) { last = null; return; }
       const r = canvas.getBoundingClientRect();
       if (last) {
-        const dt = Math.max(8, now - last.t) / 1000;
-        // velocity in canvas-height units per second, smoothed and capped
-        const nx = (e.clientX - last.x) / r.height / dt, ny = -(e.clientY - last.y) / r.height / dt;
-        vx += (nx - vx) * 0.35; vy += (ny - vy) * 0.35;
-        const sp = Math.hypot(vx, vy), cap = 2.5;
-        if (sp > cap) { vx *= cap / sp; vy *= cap / sp; }
+        const dx = (e.clientX - last.x) / r.height, dy = -(e.clientY - last.y) / r.height;
+        if (Math.hypot(dx, dy) < 0.25) onMove((e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height, dx, dy);
       }
-      last = { x: e.clientX, y: e.clientY, t: now };
+      last = { x: e.clientX, y: e.clientY };
+    }, { passive: true });
+  }
+
+  // Lasting stirs, using the STIR shader and two half-float images that take turns being
+  // read and written. Returns null where the graphics card can't do that, and the page
+  // falls back to the short-lived trail below.
+  function stirMap(gl, canvas) {
+    const hf = gl.getExtension('OES_texture_half_float');
+    const hfl = gl.getExtension('OES_texture_half_float_linear');
+    gl.getExtension('EXT_color_buffer_half_float');
+    if (!hf || !hfl) return null;
+    const prog = program(gl, VERT, STIR);
+    if (!prog) return null;
+    const u = {};
+    ['prev', 'mapRes', 'aspect', 'shift', 'dt', 'seg', 'segCount'].forEach(n => u[n] = gl.getUniformLocation(prog, n));
+
+    let tex = [], fbs = [], mw = 0, mh = 0, cur = 0;
+    const make = (w, h) => {
+      tex.forEach(t => gl.deleteTexture(t));
+      fbs.forEach(f => gl.deleteFramebuffer(f));
+      tex = []; fbs = [];
+      for (let i = 0; i < 2; i++) {
+        const t = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, hf.HALF_FLOAT_OES, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        const f = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+        const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+        tex.push(t); fbs.push(f);
+        if (!ok) { gl.bindFramebuffer(gl.FRAMEBUFFER, null); return false; }
+        gl.viewport(0, 0, w, h);
+        gl.clearColor(0, 0, 1, 1);        // no push, "stirred ages ago"
+        gl.clear(gl.COLOR_BUFFER_BIT);
+      }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      mw = w; mh = h; cur = 0;
+      return true;
+    };
+    if (!make(128, 80)) return null;
+
+    // mouse moves collected between frames (the last slot soaks up any overflow)
+    const segs = new Float32Array(16 * 4);
+    let n = 0;
+    watchMouse(canvas, (x, y, dx, dy) => {
+      if (n < 16) { segs.set([x, y, dx, dy], n * 4); n++; return; }
+      const i = 15 * 4;
+      segs[i] = x; segs[i + 1] = y; segs[i + 2] += dx; segs[i + 3] += dy;
+    });
+
+    return {
+      // advance one frame; returns the texture the smoke should read
+      step(dt) {
+        const aspect = canvas.clientWidth / canvas.clientHeight;
+        const h = Math.max(16, Math.round(128 / aspect));
+        if (h !== mh && !make(128, h)) return null;
+        gl.useProgram(prog);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbs[1 - cur]);
+        gl.viewport(0, 0, mw, mh);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, tex[cur]);
+        gl.uniform1i(u.prev, 0);
+        gl.uniform2f(u.mapRes, mw, mh);
+        gl.uniform1f(u.aspect, aspect);
+        gl.uniform1f(u.shift, (0.012 / 0.85) * dt / aspect);   // same speed as the drift
+        gl.uniform1f(u.dt, dt);
+        gl.uniform4fv(u.seg, segs);
+        gl.uniform1f(u.segCount, n);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        n = 0;
+        segs.fill(0);
+        cur = 1 - cur;
+        return tex[cur];
+      },
+    };
+  }
+
+  // Fallback: remembers the last couple of seconds of mouse movement, then lets go.
+  function trail(canvas) {
+    const N = 12, LIFE = 1.8;
+    const pos = new Float32Array(N * 4), amt = new Float32Array(N), born = new Float64Array(N).fill(-1e9);
+    let next = 0, lastDrop = 0, vx = 0, vy = 0, lastT = performance.now();
+    watchMouse(canvas, (x, y, dx, dy) => {
+      const now = performance.now();
+      const dt = Math.max(8, now - lastT) / 1000;
+      lastT = now;
+      // velocity in canvas heights per second, smoothed and capped
+      vx += (dx / dt - vx) * 0.35; vy += (dy / dt - vy) * 0.35;
+      const sp = Math.hypot(vx, vy), cap = 2.5;
+      if (sp > cap) { vx *= cap / sp; vy *= cap / sp; }
       if (now - lastDrop < 45 || Math.hypot(vx, vy) < 0.05) return;
       lastDrop = now;
       const i = next; next = (next + 1) % N;
-      pos[i * 4]     = (e.clientX - r.left) / r.width;
-      pos[i * 4 + 1] = 1 - (e.clientY - r.top) / r.height;
-      pos[i * 4 + 2] = vx;
-      pos[i * 4 + 3] = vy;
+      pos.set([x, y, vx, vy], i * 4);
       born[i] = now;
-    }, { passive: true });
+    });
     return {
       pos, amt,
       update(now) {
@@ -769,48 +917,45 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
   function flow(canvas) {
     const gl = canvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false });
     if (!gl) return;
-    const sh = (type, src) => {
-      const s = gl.createShader(type);
-      gl.shaderSource(s, src);
-      gl.compileShader(s);
-      return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
-    };
-    const vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
-    if (!vs || !fs) return;
-    const prog = gl.createProgram();
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
-    gl.useProgram(prog);
+    const prog = program(gl, VERT, FRAG);
+    if (!prog) return;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const a = gl.getAttribLocation(prog, 'a');
-    gl.enableVertexAttribArray(a);
-    gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-    const uRes = gl.getUniformLocation(prog, 'res');
-    const uT = gl.getUniformLocation(prog, 't');
-    gl.uniform1f(gl.getUniformLocation(prog, 'dim'), +canvas.dataset.dim || 0);
-    const stirTrail = canvas.closest('.hero') && finePointer && !still ? trail(canvas) : null;
-    const uStir = gl.getUniformLocation(prog, 'stir');
-    const uStirAmt = gl.getUniformLocation(prog, 'stirAmt');
+    const U = n => gl.getUniformLocation(prog, n);
+    const uRes = U('res'), uT = U('t'), uStir = U('stir'), uStirAmt = U('stirAmt'), uMap = U('stirMap'), uUseMap = U('useMap');
+    gl.useProgram(prog);
+    gl.uniform1f(U('dim'), +canvas.dataset.dim || 0);
 
-    const size = () => {
+    // Mouse stirring: hero only, real mouse only, never with reduced motion.
+    const interactive = canvas.closest('.hero') && finePointer && !still;
+    const map = interactive ? stirMap(gl, canvas) : null;
+    const stirTrail = interactive && !map ? trail(canvas) : null;
+    canvas.dataset.stir = map ? 'lasting' : stirTrail ? 'trail' : 'off';
+
+    const t0 = 40 + Math.random() * 60;   // start mid-flow, not from a blank field
+    let prevNow = null;
+    const draw = now => {
+      const dt = prevNow === null ? 0 : Math.min(0.25, (now - prevNow) / 1000);
+      prevNow = now;
+      const mapTex = map ? map.step(dt) : null;
+
+      gl.useProgram(prog);
       const w = Math.max(1, Math.round(canvas.clientWidth / 4));
       const h = Math.max(1, Math.round(canvas.clientHeight / 4));
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w; canvas.height = h;
-        gl.viewport(0, 0, w, h);
-        gl.uniform2f(uRes, w, h);
-      }
-    };
-    const t0 = 40 + Math.random() * 60;   // start mid-flow, not from a blank field
-    const draw = now => {
-      size();
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      gl.viewport(0, 0, w, h);
+      gl.uniform2f(uRes, w, h);
       gl.uniform1f(uT, t0 + now / 1000);
-      if (stirTrail) {
+      gl.uniform1f(uUseMap, mapTex ? 1 : 0);
+      if (mapTex) {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, mapTex);
+        gl.uniform1i(uMap, 0);
+      } else if (stirTrail) {
         stirTrail.update(performance.now());
         gl.uniform4fv(uStir, stirTrail.pos);
         gl.uniform1fv(uStirAmt, stirTrail.amt);
@@ -819,7 +964,11 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
     };
 
     let visible = true, raf = 0;
-    const loop = now => { draw(now); raf = visible ? requestAnimationFrame(loop) : 0; };
+    const loop = now => {
+      draw(now);
+      raf = visible ? requestAnimationFrame(loop) : 0;
+      if (!raf) prevNow = null;       // don't count off-screen time as one huge frame
+    };
     if (still) {
       draw(0);
       addEventListener('resize', () => draw(0));

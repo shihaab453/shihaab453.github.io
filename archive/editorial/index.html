@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shihaab Alam (archived design)</title>
+<meta name="robots" content="noindex">
+<!-- The site's first design (cream paper, serif), kept for reference after the
+     September 2026 redesign. Self-contained: it uses its own copy of style.css. -->
+<meta name="description" content="Shihaab Alam - software engineer and data scientist. Selected work and writing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Spectral:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="mono">shihaabalam.com</span>
+    <nav class="mono">
+      <a href="#work" aria-current="page">Work</a>
+      <a href="#writing">Writing</a>
+      <a href="#about" class="optional">About</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Software engineer &mdash; data</p>
+        <h1>Shihaab<br><em>Alam</em></h1>
+        <p class="status">Open to Summer 2027 internships</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       SELECTED WORK
+
+       TO ADD A PROJECT:    copy one whole <li class="work-row"> ... </li>
+                            block below, paste it where you want it in the
+                            list, and edit the fields.
+       TO REMOVE A PROJECT: delete its whole <li> block.
+       TO REORDER:          cut and paste the blocks. Renumber the
+                            work-idx values (001, 002, 003 ...) by hand.
+
+       A blank template is commented out at the end of the list.
+       ================================================================== -->
+
+  <section id="work">
+    <div class="section-head">
+      <h2>Selected work</h2>
+      <span class="mono">Two projects</span>
+    </div>
+
+    <div class="col-head">
+      <span>Idx</span>
+      <span>Project</span>
+      <span>Stack</span>
+      <span>Year</span>
+    </div>
+
+    <ul class="index">
+
+      <li class="work-row">
+        <div class="work-idx">001</div>
+        <div>
+          <div class="work-name"><a href="https://github.com/shihaab453/wca-analysis">WCA Analysis</a></div>
+          <div class="work-desc">Ten questions answered from the World Cube Association's full results export, including why a well-fitting trend model mistimed the sub-3-second world record by years.</div>
+        </div>
+        <div class="work-stack">Python / pandas / SciPy</div>
+        <div class="work-year">2026</div>
+      </li>
+
+      <li class="work-row">
+        <div class="work-idx">002</div>
+        <div>
+          <div class="work-name"><a href="https://github.com/shihaab453/dualsense-quickmenu">DualSense Quick Menu</a></div>
+          <div class="work-desc">A PS5-style control centre for Windows: press the PS button mid-game to control Spotify and volume, switch apps, or sleep the PC. In closed alpha.</div>
+        </div>
+        <div class="work-stack">Python / PySide6 / Spotify API</div>
+        <div class="work-year">2026</div>
+      </li>
+
+      <!-- TEMPLATE - copy the block below, remove the comment markers, fill it in.
+      <li class="work-row">
+        <div class="work-idx">003</div>
+        <div>
+          <div class="work-name"><a href="https://github.com/shihaab453/repo-name">Project name</a></div>
+          <div class="work-desc">One sentence on what it does. Keep it concrete.</div>
+        </div>
+        <div class="work-stack">Tool / Tool / Tool</div>
+        <div class="work-year">2026</div>
+      </li>
+      -->
+
+    </ul>
+  </section>
+
+  <div class="spacer"></div>
+
+  <!-- ==================================================================
+       WRITING
+
+       Each entry links to its own page under writing/.
+       TO ADD A POST:    add a <li class="post-row"> block at the TOP of the
+                         list so newest is first, and create the matching
+                         page under writing/.
+       TO REMOVE A POST: delete its <li> block and the page file.
+       ================================================================== -->
+
+  <section id="writing">
+    <div class="section-head">
+      <h2>Writing</h2>
+      <span class="mono">Newest first</span>
+    </div>
+
+    <ul class="index">
+
+      <li class="empty-note">Nothing published yet. First piece is in progress.</li>
+
+      <!-- TEMPLATE - copy the block below, remove the comment markers, fill it in,
+           and put it ABOVE the empty-note line (then delete that line once you
+           have a real post). The href points at a page you add under writing/;
+           writing/lorem-ipsum-dolor-sit-amet.html is the unlinked example to copy.
+      <li class="post-row">
+        <div class="post-date">2026.09</div>
+        <div>
+          <a href="writing/your-post-slug.html">
+            <div class="post-title">The title of the piece</div>
+            <p class="post-excerpt">One or two sentences of setup. Say what the question was and why the obvious answer was wrong.</p>
+          </a>
+        </div>
+      </li>
+      -->
+
+    </ul>
+  </section>
+
+  <footer class="site-foot" id="about">
+    <span class="name">Shihaab Alam</span>
+    <nav class="mono">
+      <a href="https://github.com/shihaab453">GitHub</a>
+      <!-- Add your contact links when you want them public:
+      <a href="mailto:you@example.com">Email</a>
+      <a href="https://www.linkedin.com/in/your-handle">LinkedIn</a>
+      -->
+    </nav>
+  </footer>
+
+</div>
+
+</body>
+</html>

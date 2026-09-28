@@ -7,61 +7,127 @@
 <meta name="description" content="Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Spectral:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../style.css">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter+Tight:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
 </head>
 <body>
 
-<div class="wrap">
+<!-- ==================================================================
+     POST TEMPLATE
+     This page is the unlinked example. To publish a post, copy this file
+     to writing/your-post-slug.html, change the <title>, description,
+     #number, date and <h1>, and replace everything inside <div class="prose">.
+     Then add a card for it in the Writing section of index.html.
+     ================================================================== -->
 
-  <header class="masthead">
-    <span class="mono"><a href="../">shihaabalam.com</a></span>
-    <nav class="mono">
-      <a href="../#work">Work</a>
-      <a href="../#writing" aria-current="page">Writing</a>
-      <a href="../#about" class="optional">About</a>
-    </nav>
-  </header>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="chev" viewBox="0 0 16 16"><path d="M3 3.5 7.5 8 3 12.5M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <filter id="glass" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="glass-map" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="80" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
 
-  <article class="article">
-    <div class="article-head">
-      <p class="eyebrow">2026.09</p>
-      <h1>Lorem Ipsum Dolor Sit Amet</h1>
+<header class="nav" id="nav">
+  <a class="brand" href="../"><span class="mark">SA</span>Shihaab Alam</a>
+  <nav class="links">
+    <a href="../#work">Work</a>
+    <a href="../#writing">Writing</a>
+    <a href="../#contact">Contact</a>
+  </nav>
+  <div class="right">
+    <a href="https://github.com/shihaab453">GitHub</a>
+    <a class="btn btn-white btn-sm" href="../#contact">Get in touch</a>
+  </div>
+</header>
+
+<header class="band post-hero">
+  <div class="glow" aria-hidden="true"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i></div>
+  <canvas class="flow" data-dim="1" aria-hidden="true"></canvas>
+  <div class="flutes" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="inner">
+    <p class="post-meta"><span class="step">#001</span><span>September 2026</span></p>
+    <h1>Lorem Ipsum Dolor Sit Amet</h1>
+  </div>
+</header>
+
+<main class="frame post-body">
+
+  <!-- ==============================================================
+       POST BODY
+       Generated from the Word document by docx2post.py. To update
+       this post, edit the .docx and re-run the converter, or edit
+       the HTML below directly.
+       ============================================================== -->
+
+  <article class="prose">
+    <p class="standfirst">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo inventore veritatis.</p>
+    <h2>Nemo Enim Ipsam</h2>
+    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+    <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis autem vel eum iure <a href="https://github.com/shihaab453">reprehenderit qui in ea voluptate</a> velit esse quam nihil molestiae consequatur.</p>
+    <blockquote>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti.</blockquote>
+    <h2>Temporibus Autem Quibusdam</h2>
+    <p>Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod <code>maxime_placeat()</code> facere possimus.</p>
+    <p>Itaque earum rerum hic tenetur a sapiente delectus:</p>
+    <ul>
+      <li>Ut aut reiciendis voluptatibus maiores alias</li>
+      <li>Consequatur aut perferendis doloribus asperiores</li>
+      <li>Repellat molestiae non recusandae itaque earum</li>
+    </ul>
+    <h3>Omnis dolor repellendus</h3>
+    <p>Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet:</p>
+    <ol>
+      <li>Ut et voluptates repudiandae sint et molestiae non recusandae</li>
+      <li>Itaque earum rerum hic tenetur a sapiente delectus</li>
+      <li>Ut aut reiciendis voluptatibus maiores alias consequatur</li>
+    </ol>
+    <pre><code>import pandas as pd
+
+lorem = pd.read_csv("ipsum.tsv", sep="\t")
+dolor = lorem.groupby("sit_amet")["consectetur"].min()
+print(dolor.head())</code></pre>
+    <figure>
+      <!-- Replace the placeholder with <img src="your-chart.png" alt="What the chart shows"> -->
+      <div class="shot">Figure placeholder</div>
+      <figcaption>Figure 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.</figcaption>
+    </figure>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Lorem</th><th>Ipsum</th><th>Dolor</th></tr></thead>
+        <tbody>
+          <tr><td>Consectetur</td><td>3.47</td><td>2018</td></tr>
+          <tr><td>Adipiscing</td><td>3.13</td><td>2023</td></tr>
+          <tr><td>Eiusmod</td><td>3.05</td><td>2025</td></tr>
+        </tbody>
+      </table>
     </div>
-
-    <!-- ==============================================================
-         POST BODY
-         Generated from the Word document by docx2post.py. To update
-         this post, edit the .docx and re-run the converter, or edit
-         the HTML below directly.
-         ============================================================== -->
-
-    <div class="prose">
-      <p class="standfirst">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo inventore veritatis.</p>
-      <h2>Nemo Enim Ipsam</h2>
-      <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
-      <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.</p>
-      <blockquote>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti.</blockquote>
-      <h2>Temporibus Autem Quibusdam</h2>
-      <p>Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.</p>
-      <p>Itaque earum rerum hic tenetur a sapiente delectus:</p>
-      <ul>
-        <li>Ut aut reiciendis voluptatibus maiores alias</li>
-        <li>Consequatur aut perferendis doloribus asperiores</li>
-        <li>Repellat molestiae non recusandae itaque earum</li>
-      </ul>
-      <h2>Omnis Voluptas Assumenda</h2>
-      <p>On the other hand, we denounce with righteous indignation and dislike men who are so beguiled and demoralized by the charms of pleasure of the moment, so blinded by desire, that they cannot foresee the pain and trouble that are bound to ensue.</p>
-      <p>Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.</p>
-    </div>
+    <hr>
+    <h2>Omnis Voluptas Assumenda</h2>
+    <p>On the other hand, we denounce with righteous indignation and dislike men who are so beguiled and demoralized by the charms of pleasure of the moment, so blinded by desire, that they cannot foresee the pain and trouble that are bound to ensue.</p>
+    <p>Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.</p>
   </article>
 
-  <footer class="article-foot">
-    <a href="../#writing" class="mono">&larr; All writing</a>
-    <span class="mono">Shihaab Alam</span>
-  </footer>
+  <div class="post-end">
+    <a class="repo" href="../#writing"><svg class="chev flip"><use href="#chev"/></svg> All writing</a>
+    <a class="repo" href="https://github.com/shihaab453">GitHub <svg class="chev"><use href="#chev"/></svg></a>
+  </div>
 
-</div>
+</main>
+
+<footer>
+  <a class="brand" href="../"><span class="mark">SA</span>Shihaab Alam</a>
+  <nav>
+    <a href="../#work">Work</a>
+    <a href="../#writing">Writing</a>
+    <a href="https://github.com/shihaab453">GitHub</a>
+  </nav>
+  <small>shihaabalam.com</small>
+</footer>
+
+<script src="../assets/site.js"></script>
 
 </body>
 </html>

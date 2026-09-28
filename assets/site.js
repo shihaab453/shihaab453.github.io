@@ -1,6 +1,17 @@
 // shihaabalam.com - shared behaviour for the homepage and post pages:
 // the glass nav, the smoke backgrounds, and mouse stirring.
 
+// Visitor counts via GoatCounter (no cookies, no personal data). The dashboard is at
+// https://shihaabalam.goatcounter.com once the account exists. Set to '' to turn it off.
+const GOATCOUNTER = 'shihaabalam';
+if (GOATCOUNTER) {
+  const gc = document.createElement('script');
+  gc.async = true;
+  gc.src = 'https://gc.zgo.at/count.js';
+  gc.dataset.goatcounter = 'https://' + GOATCOUNTER + '.goatcounter.com/count';
+  document.head.appendChild(gc);
+}
+
 // Sections with the dark smoke background (homepage hero, Writing band, post header).
 const SMOKE = '.hero, .band, .post-hero';
 

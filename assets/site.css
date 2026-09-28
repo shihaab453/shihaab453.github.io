@@ -535,3 +535,24 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
   gap: 16px 24px;
 }
 .chev.flip { transform: scaleX(-1); }
+
+/* ---------- 404 page ----------
+   One full-screen smoke band with the message in the middle. */
+
+.lost {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 120px;
+}
+.lost h1 {
+  font-weight: 800;
+  font-size: clamp(52px, 8vw, 112px);
+  line-height: .96;
+  letter-spacing: -0.035em;
+  margin: 0;
+}
+.lost .ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 36px; }
+.lost .ctas .btn { margin-top: 0; }

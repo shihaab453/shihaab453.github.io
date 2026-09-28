@@ -307,7 +307,13 @@ h2 {
 .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); padding: 6px 10px; font-size: 14px; }
 .chip b { width: 14px; height: 14px; background: var(--teal); display: grid; place-items: center; }
 .chip b svg { width: 10px; height: 10px; }
-.year { margin-top: 28px; font-family: var(--mono); font-size: 13px; color: var(--grey); }
+.facts { list-style: none; margin: 22px 0 0; padding: 0; max-width: 470px; }
+.facts li { position: relative; padding-left: 20px; margin-top: 10px; font-size: 15px; line-height: 1.5; color: var(--grey); }
+.facts li::before { content: ""; position: absolute; left: 0; top: .6em; width: 7px; height: 7px; background: var(--orange); }
+.meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-top: 28px; }
+.year { font-family: var(--mono); font-size: 13px; color: var(--grey); }
+.repo { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
+.repo:hover { color: var(--orange); border-color: var(--orange); }
 
 .visual {
   position: relative;
@@ -465,20 +471,20 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
   <div class="tiles" aria-hidden="true">
     <div class="tile blank" style="grid-area: 1 / 7"></div>
     <div class="tile" style="grid-area: 1 / 5">
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="3" width="13" height="12"/><path d="M2.5 7h13M2.5 11h13M7 3v12"/></svg>Pandas
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="3" width="13" height="12"/><path d="M2.5 7h13M2.5 11h13M7 3v12"/></svg>pandas
     </div>
     <div class="tile" style="grid-area: 2 / 1">
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><ellipse cx="9" cy="4.5" rx="6" ry="2"/><path d="M3 4.5v9c0 1.1 2.7 2 6 2s6-.9 6-2v-9M3 9c0 1.1 2.7 2 6 2s6-.9 6-2"/></svg>SQL
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 3.5C4 3.5 4.5 7 3 9c1.5 2 1 5.5 3 5.5M12 3.5c2 0 1.5 3.5 3 5.5-1.5 2-1 5.5-3 5.5"/></svg>Python
     </div>
     <div class="tile" style="grid-area: 2 / 3">
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 3.5C4 3.5 4.5 7 3 9c1.5 2 1 5.5 3 5.5M12 3.5c2 0 1.5 3.5 3 5.5-1.5 2-1 5.5-3 5.5"/></svg>C++
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 15.5h13M2.5 15.5V2.5"/><path d="M4 14c2.5 0 3-9 5-9s2.5 9 5.5 9"/></svg>SciPy
     </div>
     <div class="tile blank" style="grid-area: 2 / 6"></div>
     <div class="tile" style="grid-area: 3 / 2">
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="3.5" width="13" height="11"/><path d="M2.5 6.5h13"/></svg>Win32
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="2.5" width="11" height="13"/><path d="M6 6h6M6 9h6M6 12h3.5"/></svg>Jupyter
     </div>
     <div class="tile" style="grid-area: 3 / 5">
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5 5.5h8c2 0 3.5 2.5 3.5 5.5 0 2-1 3-2 3-1.5 0-2-2.5-3.5-2.5h-4C5.5 11.5 5 14 3.5 14c-1 0-2-1-2-3C1.5 8 3 5.5 5 5.5Z"/><path d="M5 8v2.5M3.75 9.25h2.5"/></svg>HID
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="3.5" width="13" height="11"/><path d="M2.5 6.5h13"/></svg>PySide6
     </div>
   </div>
 
@@ -506,13 +512,23 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
       <div class="copy">
         <span class="step">#001</span>
         <h3>WCA Analysis</h3>
-        <p>Statistical study of two decades of speedcubing competition results, from world records down to regional depth.</p>
+        <p>An analysis of the World Cube Association's results export, covering every official speedcubing competition and competitor on record. Ten questions across three notebooks, each answered and then tested against the obvious answer.</p>
+        <ul class="facts">
+          <li>A trend model that fit the 3x3 world record with r&sup2; &asymp; 0.95 still predicted the sub-3-second record 2.5 to 4+ years too early.</li>
+          <li>No home advantage. Comparing about 13,900 competitors against themselves, people perform closer to their best away from home (p&nbsp;=&nbsp;1.3e-67).</li>
+          <li>Caught two data problems in the loaders, duplicate competitor rows and mixed-type event IDs, and pinned both with a pytest suite that runs in CI.</li>
+        </ul>
         <div class="stack">
-          <span class="chip"><b><svg><use href="#tick"/></svg></b>Pandas</span>
-          <span class="chip"><b><svg><use href="#tick"/></svg></b>SQL</span>
-          <span class="chip"><b><svg><use href="#tick"/></svg></b>Viz</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Python</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>pandas</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>SciPy</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Matplotlib</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Jupyter</span>
         </div>
-        <div class="year">2026</div>
+        <div class="meta-row">
+          <span class="year">2026</span>
+          <a class="repo" href="https://github.com/shihaab453/wca-analysis">View on GitHub <svg class="chev"><use href="#chev"/></svg></a>
+        </div>
       </div>
       <div class="visual v1">
         <div class="window">
@@ -526,17 +542,27 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
       <div class="copy">
         <span class="step">#002</span>
         <h3>DualSense Quick Menu</h3>
-        <p>A native Windows overlay exposing PS5 controller settings without leaving the running game.</p>
+        <p>A PS5-style control centre for Windows. Press the PS button on a DualSense mid-game and an overlay opens for Spotify, volume, switching apps and sleep or shutdown, all without putting the controller down.</p>
+        <ul class="facts">
+          <li>Browse Liked Songs and playlists, control playback, and see a Now Playing card with real album art.</li>
+          <li>A controller-driven Alt-Tab, built fresh from the live window list each time it opens.</li>
+          <li>In closed alpha. Every build runs the tests, packages with PyInstaller, then self-tests the finished exe before it's zipped.</li>
+        </ul>
         <div class="stack">
-          <span class="chip"><b><svg><use href="#tick"/></svg></b>C++</span>
-          <span class="chip"><b><svg><use href="#tick"/></svg></b>Win32</span>
-          <span class="chip"><b><svg><use href="#tick"/></svg></b>HID</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Python</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>PySide6</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>pydualsense</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Spotify API</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>PyInstaller</span>
         </div>
-        <div class="year">2026</div>
+        <div class="meta-row">
+          <span class="year">2026 &middot; alpha</span>
+          <a class="repo" href="https://github.com/shihaab453/dualsense-quickmenu">View on GitHub <svg class="chev"><use href="#chev"/></svg></a>
+        </div>
       </div>
       <div class="visual v2">
         <div class="window">
-          <div class="bar"><i></i><i></i><i></i><span>dualsense-quick-menu</span></div>
+          <div class="bar"><i></i><i></i><i></i><span>dualsense-quickmenu</span></div>
           <div class="shot">Drop a screenshot<br>of the overlay here</div>
         </div>
       </div>

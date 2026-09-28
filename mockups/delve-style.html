@@ -787,14 +787,14 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
     return gl.getProgramParameter(p, gl.LINK_STATUS) ? p : null;
   }
 
-  // Watches the mouse over the hero. Calls onMove(x, y, dx, dy) in canvas terms:
+  // Watches the mouse over the canvas's section. Calls onMove(x, y, dx, dy) in canvas terms:
   // x, y from 0 to 1 (y up), dx, dy the movement in canvas heights.
   function watchMouse(canvas, onMove) {
-    const hero = canvas.closest('.hero');
+    const section = canvas.closest('.hero, .band');
     let last = null;
     addEventListener('pointermove', e => {
       if (e.pointerType !== 'mouse') return;
-      const hr = hero.getBoundingClientRect();
+      const hr = section.getBoundingClientRect();
       if (e.clientY < hr.top || e.clientY > hr.bottom) { last = null; return; }
       const r = canvas.getBoundingClientRect();
       if (last) {
@@ -930,8 +930,8 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
     gl.useProgram(prog);
     gl.uniform1f(U('dim'), +canvas.dataset.dim || 0);
 
-    // Mouse stirring: hero only, real mouse only, never with reduced motion.
-    const interactive = canvas.closest('.hero') && finePointer && !still;
+    // Mouse stirring: hero and Writing band, real mouse only, never with reduced motion.
+    const interactive = canvas.closest('.hero, .band') && finePointer && !still;
     const map = interactive ? stirMap(gl, canvas) : null;
     const stirTrail = interactive && !map ? trail(canvas) : null;
     canvas.dataset.stir = map ? 'lasting' : stirTrail ? 'trail' : 'off';

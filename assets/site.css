@@ -347,6 +347,41 @@ h2 {
   padding: 12px;
 }
 
+/* ---------- flagship project ----------
+   The first project gets the same split panel as the others, then a strip of
+   headline numbers, two short columns of detail, and its tools and links. */
+
+.flagship { border-top: 1px solid var(--line); }
+.flagship .project { border-top: 0; }
+.flagship .project h3 { font-size: clamp(44px, 5vw, 68px); }
+.tag-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.flag-label { font-family: var(--mono); font-size: 13px; color: var(--grey); }
+.flagship .project p { max-width: 520px; }
+.flagship .facts { max-width: 520px; }
+
+.v3::before { background: radial-gradient(45% 55% at 90% 10%, #f2b08c, transparent), radial-gradient(55% 60% at 10% 85%, #0f6f8c, transparent), linear-gradient(150deg, #1d4f5c, #0b3a4a 45%, #9a4a22); }
+.chart-window { margin: 0; width: min(100%, 500px); }
+.chart-body { padding: 14px 14px 4px; }
+.chart { display: block; width: 100%; height: auto; font-family: var(--sans); }
+.chart-window figcaption { padding: 0 16px 14px; font-family: var(--mono); font-size: 11.5px; line-height: 1.5; color: var(--grey); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.flag-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); }
+.flag-stats > div { padding: 30px var(--pad) 32px; display: flex; flex-direction: column; gap: 8px; }
+.flag-stats > div + div { border-left: 1px solid var(--line); }
+.flag-stats b { font-size: clamp(30px, 3.2vw, 44px); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.flag-stats span { font-size: 14px; line-height: 1.45; color: var(--grey); max-width: 240px; }
+
+.flag-detail { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); }
+.flag-detail > div { padding: clamp(36px, 4vw, 52px) var(--pad); }
+.flag-detail > div + div { border-left: 1px solid var(--line); }
+.flag-detail h4 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.015em; }
+.flag-detail .facts { margin-top: 14px; }
+
+.flag-foot { border-top: 1px solid var(--line); padding: 28px var(--pad) 36px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 32px; }
+.flag-foot .stack, .flag-foot .meta-row { margin-top: 0; }
+.flagship + .project { border-top: 1px solid var(--line); }
+
 /* ---------- dark band ---------- */
 
 .band {
@@ -416,6 +451,11 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
   .nav { grid-template-columns: 1fr auto; top: 10px; left: 10px; right: 10px; height: 58px; padding: 0 8px 0 14px; border-radius: 20px; }
   .nav .right a:not(.btn) { display: none; }
   .project { grid-template-columns: 1fr; }
+  .flag-stats { grid-template-columns: 1fr 1fr; }
+  .flag-stats > div:nth-child(3) { border-left: 0; }
+  .flag-stats > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .flag-detail { grid-template-columns: 1fr; }
+  .flag-detail > div + div { border-left: 0; border-top: 1px solid var(--line); }
   .visual { min-height: 0; padding: 40px 20px; }
   .posts { grid-template-columns: 1fr; }
   .post + .post { border-left: 0; border-top: 1px solid rgba(255,255,255,.16); }

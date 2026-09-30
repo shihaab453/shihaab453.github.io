@@ -85,7 +85,7 @@
     </div>
   </div>
 
-  <p class="hero-foot"><span class="pulse"></span><a href="#contact">Contact me</a></p>
+  <p class="hero-foot"><span class="pulse"></span><a class="foot-link" href="#contact">Contact me <svg class="chev"><use href="#chev"/></svg></a></p>
 </section>
 
 <main>
@@ -96,11 +96,11 @@
       <h2>Selected work</h2>
     </div>
 
-    <!-- FLAGSHIP: Celeste RL. All numbers come from the repo's README and docs/results. -->
+    <!-- Celeste RL. All numbers come from the repo's README and docs/results. -->
     <section class="flagship" aria-labelledby="celeste-title">
       <article class="project">
         <div class="copy">
-          <div class="tag-row"><span class="step">#001</span><span class="flag-label">Flagship &middot; in progress</span></div>
+          <span class="step">#001</span>
           <h3 id="celeste-title">Celeste RL</h3>
           <p>Teaching a reinforcement learning agent to play <em>Celeste</em>: the real Steam game, on unmodified physics, using only the game's own controls. I built the whole stack: a C# game mod that runs the game about 85&times; faster than the existing interface, a verified training environment, and pre-registered experiments scored on held-out states.</p>
           <ul class="facts">

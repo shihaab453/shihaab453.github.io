@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Shihaab Alam</title>
-<meta name="description" content="Shihaab Alam - software engineer and data scientist. Selected work and writing.">
+<meta name="description" content="Shihaab Alam, software engineer. Projects include Celeste RL, a reinforcement learning agent learning to play the real game of Celeste, plus data analysis and Windows tools.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter+Tight:wght@300;400;500;700;800&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
     <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
   </div>
 
-  <!-- The tools from the projects below, on frosted tiles. -->
+  <!-- The main tools from the projects below, on frosted tiles. -->
   <div class="tiles" aria-hidden="true">
     <div class="tile blank" style="grid-area: 1 / 7"></div>
     <div class="tile" style="grid-area: 1 / 5">
@@ -53,11 +53,11 @@
       <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 3.5C4 3.5 4.5 7 3 9c1.5 2 1 5.5 3 5.5M12 3.5c2 0 1.5 3.5 3 5.5-1.5 2-1 5.5-3 5.5"/></svg>Python
     </div>
     <div class="tile" style="grid-area: 2 / 3">
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 15.5h13M2.5 15.5V2.5"/><path d="M4 14c2.5 0 3-9 5-9s2.5 9 5.5 9"/></svg>SciPy
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="4" cy="5" r="1.6"/><circle cx="4" cy="13" r="1.6"/><circle cx="14" cy="9" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="9" cy="14" r="1.6"/><path d="M5.5 5.3 7.5 4.3M5.5 12.7l2 .9M5.4 5.8l2.3 7.2M5.4 12.2 7.7 4.8M10.5 4.6 12.6 8M10.5 13.4 12.6 10"/></svg>PyTorch
     </div>
     <div class="tile blank" style="grid-area: 2 / 6"></div>
     <div class="tile" style="grid-area: 3 / 2">
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="2.5" width="11" height="13"/><path d="M6 6h6M6 9h6M6 12h3.5"/></svg>Jupyter
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 3.5 5.5 14.5M12 3.5l-1.5 11M3.5 7h11M3 11h11"/></svg>C#
     </div>
     <div class="tile" style="grid-area: 3 / 5">
       <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="3.5" width="13" height="11"/><path d="M2.5 6.5h13"/></svg>PySide6
@@ -84,9 +84,118 @@
       <h2>Selected work.</h2>
     </div>
 
+    <!-- FLAGSHIP: Celeste RL. All numbers come from the repo's README and docs/results. -->
+    <section class="flagship" aria-labelledby="celeste-title">
+      <article class="project">
+        <div class="copy">
+          <div class="tag-row"><span class="step">#001</span><span class="flag-label">Flagship &middot; in progress</span></div>
+          <h3 id="celeste-title">Celeste RL</h3>
+          <p>Teaching a reinforcement learning agent to play <em>Celeste</em>: the real Steam game, on unmodified physics, using only the game's own controls. I built the whole stack: a C# game mod that runs the game about 85&times; faster than the existing interface, a verified training environment, and pre-registered experiments scored on held-out states.</p>
+          <ul class="facts">
+            <li>Without demonstrations, PPO cleared Room 1 zero times in 50,369 episodes. I measured why: the policy never left near-uniform play, and the reward gave almost no signal between failures.</li>
+            <li>With seven demonstrations found by a search, and no human play, cloning then PPO works. Training from varied starts beat the fixed start by 22.6 points on 200 held-out states (95% CI +6.7 to +43.5), in all six matched seeds.</li>
+            <li>The same design did not replicate in Room 2 (&minus;5.8 points, CI &minus;18.7 to +3.4). I published that too, and it led to a study of why fine-tuning runs collapse.</li>
+          </ul>
+        </div>
+        <div class="visual v3">
+          <figure class="window chart-window">
+            <div class="bar"><i></i><i></i><i></i><span>held-out success</span></div>
+            <div class="chart-body">
+<svg class="chart" viewBox="0 0 400 300" role="img" aria-labelledby="cr-title cr-desc">
+<title id="cr-title">Held-out success by training seed, canonical versus varied starts</title>
+<desc id="cr-desc">Room 1: mean 52.2% with canonical starts and 74.8% with varied starts; all six seeds improved. Room 2: mean 86.8% and 80.9%; three seeds improved and three got worse.</desc>
+<line x1="44" x2="396" y1="242.0" y2="242.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="2" y="246.0" font-size="11" fill="#525252" font-family="Geist Mono, monospace">0%</text>
+<line x1="44" x2="396" y1="152.0" y2="152.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="2" y="156.0" font-size="11" fill="#525252" font-family="Geist Mono, monospace">50%</text>
+<line x1="44" x2="396" y1="62.0" y2="62.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="2" y="66.0" font-size="11" fill="#525252" font-family="Geist Mono, monospace">100%</text>
+<text x="135.0" y="20" text-anchor="middle" font-size="15" font-weight="700" fill="#0c0c0c">Room 1</text>
+<text x="135.0" y="38" text-anchor="middle" font-size="12" fill="#525252">+22.6 pts · p = 0.031</text>
+<g><title>Seed 3: 59.4% → 76.4%</title><line x1="95" y1="135.2" x2="175" y2="104.4" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="135.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="104.4" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="135.2" x2="175" y2="104.4" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 4: 5.5% → 76.9%</title><line x1="95" y1="232.2" x2="175" y2="103.6" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="232.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="103.6" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="232.2" x2="175" y2="103.6" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 5: 72.5% → 77.4%</title><line x1="95" y1="111.4" x2="175" y2="102.8" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="111.4" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="102.8" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="111.4" x2="175" y2="102.8" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 6: 63.8% → 65.9%</title><line x1="95" y1="127.2" x2="175" y2="123.3" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="127.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="123.3" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="127.2" x2="175" y2="123.3" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 7: 64.3% → 78.8%</title><line x1="95" y1="126.2" x2="175" y2="100.2" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="126.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="100.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="126.2" x2="175" y2="100.2" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 8: 47.6% → 73.3%</title><line x1="95" y1="156.4" x2="175" y2="110.1" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="156.4" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="110.1" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="156.4" x2="175" y2="110.1" stroke="transparent" stroke-width="10"/></g>
+<g><title>Mean: 52.2% → 74.8%</title><line x1="95" y1="148.1" x2="175" y2="107.4" stroke="#fb4a02" stroke-width="3" stroke-linecap="round"/><circle cx="95" cy="148.1" r="5" fill="#fb4a02" stroke="#fff" stroke-width="2"/><circle cx="175" cy="107.4" r="5" fill="#fb4a02" stroke="#fff" stroke-width="2"/></g>
+<text x="85" y="152.1" text-anchor="end" font-size="12" font-weight="700" fill="#0c0c0c">52%</text>
+<text x="185" y="111.4" text-anchor="start" font-size="12" font-weight="700" fill="#0c0c0c">75%</text>
+<text x="95" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Canonical</text>
+<text x="95" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
+<text x="175" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Varied</text>
+<text x="175" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
+<text x="315.0" y="20" text-anchor="middle" font-size="15" font-weight="700" fill="#0c0c0c">Room 2</text>
+<text x="315.0" y="38" text-anchor="middle" font-size="12" fill="#525252">−5.8 pts · no gain found</text>
+<g><title>Seed 20: 86.9% → 77.7%</title><line x1="275" y1="85.6" x2="355" y2="102.1" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="85.6" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="102.1" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="85.6" x2="355" y2="102.1" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 21: 93.0% → 91.4%</title><line x1="275" y1="74.6" x2="355" y2="77.5" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="74.6" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="77.5" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="74.6" x2="355" y2="77.5" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 22: 86.9% → 91.7%</title><line x1="275" y1="85.5" x2="355" y2="77.0" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="85.5" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="77.0" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="85.5" x2="355" y2="77.0" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 23: 87.1% → 91.1%</title><line x1="275" y1="85.2" x2="355" y2="78.0" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="85.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="78.0" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="85.2" x2="355" y2="78.0" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 24: 84.3% → 86.4%</title><line x1="275" y1="90.2" x2="355" y2="86.5" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="90.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="86.5" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="90.2" x2="355" y2="86.5" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 25: 82.2% → 47.3%</title><line x1="275" y1="94.0" x2="355" y2="156.9" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="94.0" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="156.9" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="94.0" x2="355" y2="156.9" stroke="transparent" stroke-width="10"/></g>
+<g><title>Mean: 86.8% → 80.9%</title><line x1="275" y1="85.8" x2="355" y2="96.3" stroke="#fb4a02" stroke-width="3" stroke-linecap="round"/><circle cx="275" cy="85.8" r="5" fill="#fb4a02" stroke="#fff" stroke-width="2"/><circle cx="355" cy="96.3" r="5" fill="#fb4a02" stroke="#fff" stroke-width="2"/></g>
+<text x="265" y="89.8" text-anchor="end" font-size="12" font-weight="700" fill="#0c0c0c">87%</text>
+<text x="365" y="100.3" text-anchor="start" font-size="12" font-weight="700" fill="#0c0c0c">81%</text>
+<text x="275" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Canonical</text>
+<text x="275" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
+<text x="355" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Varied</text>
+<text x="355" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
+</svg>
+<table class="sr-only"><caption>Held-out route-macro success per training seed</caption><thead><tr><th>Room</th><th>Seed</th><th>Canonical starts</th><th>Varied starts</th></tr></thead><tbody><tr><td>Room 1</td><td>Seed 3</td><td>59.4%</td><td>76.4%</td></tr><tr><td>Room 1</td><td>Seed 4</td><td>5.5%</td><td>76.9%</td></tr><tr><td>Room 1</td><td>Seed 5</td><td>72.5%</td><td>77.4%</td></tr><tr><td>Room 1</td><td>Seed 6</td><td>63.8%</td><td>65.9%</td></tr><tr><td>Room 1</td><td>Seed 7</td><td>64.3%</td><td>78.8%</td></tr><tr><td>Room 1</td><td>Seed 8</td><td>47.6%</td><td>73.3%</td></tr><tr><td>Room 2</td><td>Seed 20</td><td>86.9%</td><td>77.7%</td></tr><tr><td>Room 2</td><td>Seed 21</td><td>93.0%</td><td>91.4%</td></tr><tr><td>Room 2</td><td>Seed 22</td><td>86.9%</td><td>91.7%</td></tr><tr><td>Room 2</td><td>Seed 23</td><td>87.1%</td><td>91.1%</td></tr><tr><td>Room 2</td><td>Seed 24</td><td>84.3%</td><td>86.4%</td></tr><tr><td>Room 2</td><td>Seed 25</td><td>82.2%</td><td>47.3%</td></tr><tr><td>Room 1</td><td>Mean</td><td>52.2%</td><td>74.8%</td></tr><tr><td>Room 2</td><td>Mean</td><td>86.8%</td><td>80.9%</td></tr></tbody></table>
+            </div>
+            <figcaption>Each grey line is one training seed; orange is the mean. Success on frozen held-out states the policy never trained from.</figcaption>
+          </figure>
+        </div>
+      </article>
+
+      <div class="flag-stats">
+        <div><b>2,600</b><span>game frames per second through my lockstep mod, about 85&times; the existing interface</span></div>
+        <div><b>926 / 926</b><span>frames identical to normal-speed play on fixed verification traces</span></div>
+        <div><b>+22.6 pts</b><span>held-out gain from varied-start training in Room 1, 6 of 6 seeds</span></div>
+        <div><b>469</b><span>unit tests, plus live checks against the running game</span></div>
+      </div>
+
+      <div class="flag-detail">
+        <div>
+          <h4>How it&rsquo;s built</h4>
+          <ul class="facts">
+            <li>A C# Everest mod hooks CelesteTAS&rsquo;s input playback and hands each frame to Python over a local socket, so the game runs as fast as the agent can act instead of at 60&nbsp;Hz.</li>
+            <li>Resets restore a savestate in about 4&nbsp;ms. A 30-minute soak ran 4.85 million steps with 808 of 808 replay checks identical.</li>
+            <li>Found and fixed a render-target leak in Everest&rsquo;s dash trails that grew memory by 8&nbsp;GB in 4 minutes.</li>
+            <li>13 live fault checks, such as replacing the connection mid-reset or a client that stops reading, and a 30-check input-binding audit.</li>
+          </ul>
+        </div>
+        <div>
+          <h4>How it&rsquo;s tested</h4>
+          <ul class="facts">
+            <li>Each experiment&rsquo;s plan and analysis are committed before its data exists, and negative results are reported in full.</li>
+            <li>Scored on frozen held-out states, with confidence intervals that resample training seeds and whole routes, not single episodes.</li>
+            <li>Every run records its commit and the game&rsquo;s file hashes, and refuses to start if either drifts.</li>
+            <li>When an early result turned out to rest on post-selected checkpoints, I withdrew it and replaced it with the corrected analysis.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="flag-foot">
+        <div class="stack">
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Python</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>PyTorch</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Stable-Baselines3</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Gymnasium</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>C# / .NET</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Everest</span>
+        </div>
+        <div class="meta-row">
+          <span class="year">2026 &middot; in progress</span>
+          <a class="repo" href="https://github.com/shihaab453/celeste-rl">View on GitHub <svg class="chev"><use href="#chev"/></svg></a>
+          <a class="repo" href="https://github.com/shihaab453/celeste-rl/tree/main/docs">Read the reports <svg class="chev"><use href="#chev"/></svg></a>
+        </div>
+      </div>
+    </section>
+
     <article class="project">
       <div class="copy">
-        <span class="step">#001</span>
+        <span class="step">#002</span>
         <h3>WCA Analysis</h3>
         <p>An analysis of the World Cube Association's results export, covering every official speedcubing competition and competitor on record. Ten questions across three notebooks, each answered and then tested against the obvious answer.</p>
         <ul class="facts">
@@ -116,7 +225,7 @@
 
     <article class="project">
       <div class="copy">
-        <span class="step">#002</span>
+        <span class="step">#003</span>
         <h3>DualSense Quick Menu</h3>
         <p>A PS5-style control centre for Windows. Press the PS button on a DualSense mid-game and an overlay opens for Spotify, volume, switching apps and sleep or shutdown, all without putting the controller down.</p>
         <ul class="facts">

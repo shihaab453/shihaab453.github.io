@@ -232,6 +232,7 @@ a { color: inherit; text-decoration: none; }
 }
 .hero .sub { font-size: clamp(18px, 1.6vw, 21px); font-weight: 300; margin: 28px 0 32px; max-width: 560px; }
 .hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero h1 + .ctas { margin-top: clamp(32px, 4vw, 48px); }
 .hero-foot {
   position: relative;
   margin-top: auto;

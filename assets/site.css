@@ -334,6 +334,8 @@ h2 {
 .visual:has(.shot-img) { padding: 32px; }
 .window:has(.shot-img) { width: min(100%, 600px); }
 .window a:has(.shot-img) { display: block; cursor: zoom-in; }
+.visual.wide-figure { padding: clamp(28px, 4vw, 56px) var(--pad); }
+.wide-figure .window:has(.shot-img) { width: min(100%, 1180px); }
 .window .bar i { width: 9px; height: 9px; border-radius: 50%; background: #e2e3e8; }
 .window .bar i:nth-child(1) { background: #fb3748; }
 .window .bar i:nth-child(2) { background: #f7b928; }

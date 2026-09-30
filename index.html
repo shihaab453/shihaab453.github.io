@@ -271,10 +271,17 @@
       <div class="visual v2">
         <div class="window">
           <div class="bar"><i></i><i></i><i></i><span>dualsense-quickmenu</span></div>
-          <div class="shot">Drop a screenshot<br>of the overlay here</div>
+          <a href="assets/dualsense-overlay.jpg" title="Open the screenshot at full size"><img class="shot-img" src="assets/dualsense-overlay.jpg" width="1300" height="812" loading="lazy" alt="The DualSense Quick Menu overlay open over Rocket League: a Now Playing card showing the current Spotify track and album art, a Switch App card, and a row of tray icons for home, music, sound and power."></a>
         </div>
       </div>
     </article>
+
+    <div class="visual v2 flag-video wide-figure">
+      <figure class="window video-window">
+        <div class="bar"><i></i><i></i><i></i><span>how a button press reaches the overlay</span></div>
+        <a href="assets/dualsense-architecture.png" title="Open the diagram at full size"><img class="shot-img" src="assets/dualsense-architecture.png" width="1920" height="1200" loading="lazy" alt="Architecture diagram. The DualSense sends raw HID reports over USB at about 125 Hz to an HID read thread, then a poll thread that samples every 8 ms and turns state into presses; both run at THREAD_PRIORITY_HIGHEST, above a game's normal-priority threads. A Qt signal passes presses to the Qt main thread, which draws the overlay and never waits on the network. Spotify calls go to a worker thread that talks to the Spotify Web API over HTTPS with PKCE OAuth. Under full CPU load, input had waited 50 to 100 ms for a turn, while the app's own work took under 7 ms."></a>
+      </figure>
+    </div>
   </div>
 
   <div class="frame"><div class="dots"></div></div>

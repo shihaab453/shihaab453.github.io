@@ -148,6 +148,17 @@
         </div>
       </article>
 
+      <div class="visual v3 flag-video">
+        <figure class="window video-window">
+          <div class="bar"><i></i><i></i><i></i><span>the agent playing Room 1</span><button class="vid-toggle" type="button">Pause</button></div>
+          <video class="preview" muted loop playsinline preload="metadata" poster="assets/celeste-rl-preview.png" aria-label="The reinforcement learning agent clearing Celeste Chapter 1, Room 1, with the game state it reads and the buttons it presses shown alongside">
+            <source src="assets/celeste-rl-preview.webm" type="video/webm">
+            <source src="assets/celeste-rl-preview.mp4" type="video/mp4">
+          </video>
+          <figcaption>The agent clearing Room 1 at real speed, then a replay at one third speed. Left: the game state it reads every frame. Bottom right: the buttons it presses.</figcaption>
+        </figure>
+      </div>
+
       <div class="flag-stats">
         <div><b>2,600</b><span>game frames per second through my lockstep mod, about 85&times; the existing interface</span></div>
         <div><b>926 / 926</b><span>frames identical to normal-speed play on fixed verification traces</span></div>

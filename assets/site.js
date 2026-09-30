@@ -423,3 +423,22 @@ function flow(canvas) {
 }
 
 document.querySelectorAll('canvas.flow').forEach(flow);
+
+// Project preview videos: play only while on screen, with a pause button.
+// With reduced motion they wait on their poster frame until someone presses Play.
+document.querySelectorAll('video.preview').forEach(v => {
+  const btn = v.closest('figure') && v.closest('figure').querySelector('.vid-toggle');
+  let held = still;
+  const label = () => { if (btn) btn.textContent = v.paused ? 'Play' : 'Pause'; };
+  v.addEventListener('play', label);
+  v.addEventListener('pause', label);
+  if (btn) btn.addEventListener('click', () => {
+    held = !v.paused;
+    if (held) v.pause(); else v.play().catch(() => {});
+  });
+  new IntersectionObserver(([e]) => {
+    if (e.isIntersecting && !held) v.play().catch(() => {});
+    else if (!e.isIntersecting) v.pause();
+  }, { threshold: 0.25 }).observe(v);
+  label();
+});

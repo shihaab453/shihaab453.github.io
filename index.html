@@ -11,13 +11,13 @@
 <meta property="og:site_name" content="Shihaab Alam">
 <meta property="og:url" content="https://shihaabalam.com/">
 <meta property="og:title" content="Shihaab Alam">
-<meta property="og:description" content="Shihaab Alam, software engineer. Projects include Celeste RL, a reinforcement learning agent learning to play the real game of Celeste, plus data analysis and Windows tools.">
+<meta property="og:description" content="Shihaab Alam, software engineer. Projects include Celeste RL, a reinforcement learning agent learning to play Celeste, plus data analysis and Windows tools.">
 <meta property="og:image" content="https://shihaabalam.com/assets/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Shihaab Alam, software engineer, over a teal and orange smoke background">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="description" content="Shihaab Alam, software engineer. Projects include Celeste RL, a reinforcement learning agent learning to play the real game of Celeste, plus data analysis and Windows tools.">
+<meta name="description" content="Shihaab Alam, software engineer. Projects include Celeste RL, a reinforcement learning agent learning to play Celeste, plus data analysis and Windows tools.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter+Tight:wght@300;400;500;700;800&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@
         <div class="copy">
           <span class="step">#001</span>
           <h3 id="celeste-title">Celeste RL</h3>
-          <p>Teaching a reinforcement learning agent to play <em>Celeste</em>: the real Steam game, on unmodified physics, using only the game's own controls. I built the whole stack: a C# game mod that runs the game about 85&times; faster than the existing interface, a verified training environment, and pre-registered experiments scored on held-out states.</p>
+          <p>Teaching a reinforcement learning agent to play <em>Celeste</em> using only the game's own controls. I built the whole stack in Python: a verified Gymnasium environment connected to the game, PPO training, and pre-registered experiments scored on held-out states. A small C# plugin lets the game step about 85&times; faster than the existing interface.</p>
           <ul class="facts">
             <li>Without demonstrations, PPO cleared Room 1 zero times in 50,369 episodes. I measured why: the policy never left near-uniform play, and the reward gave almost no signal between failures.</li>
             <li>With seven demonstrations found by a search, and no human play, cloning then PPO works. Training from varied starts beat the fixed start by 22.6 points on 200 held-out states (95% CI +6.7 to +43.5), in all six matched seeds.</li>
@@ -151,7 +151,7 @@
       </div>
 
       <div class="flag-stats">
-        <div><b>2,600</b><span>game frames per second through my lockstep mod, about 85&times; the existing interface</span></div>
+        <div><b>2,600</b><span>game frames per second through my lockstep plugin, about 85&times; the existing interface</span></div>
         <div><b>926 / 926</b><span>frames identical to normal-speed play on fixed verification traces</span></div>
         <div><b>+22.6 pts</b><span>held-out gain from varied-start training in Room 1, 6 of 6 seeds</span></div>
         <div><b>469</b><span>unit tests, plus live checks against the running game</span></div>
@@ -161,7 +161,7 @@
         <div>
           <h4>How it&rsquo;s built</h4>
           <ul class="facts">
-            <li>A C# Everest mod hooks CelesteTAS&rsquo;s input playback and hands each frame to Python over a local socket, so the game runs as fast as the agent can act instead of at 60&nbsp;Hz.</li>
+            <li>The Python environment talks to the game through a small C# plugin that hooks CelesteTAS&rsquo;s input playback and hands each frame over a local socket, so the game runs as fast as the agent can act instead of at 60&nbsp;Hz.</li>
             <li>Resets restore a savestate in about 4&nbsp;ms. A 30-minute soak ran 4.85 million steps with 808 of 808 replay checks identical.</li>
             <li>Found and fixed a render-target leak in Everest&rsquo;s dash trails that grew memory by 8&nbsp;GB in 4 minutes.</li>
             <li>13 live fault checks, such as replacing the connection mid-reset or a client that stops reading, and a 30-check input-binding audit.</li>

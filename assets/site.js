@@ -498,6 +498,10 @@ function flow(canvas) {
     if (size !== lastSize) { lastSize = size; layout(); }
 
     gl.useProgram(prog);
+    // Unbind last frame's result before drawing into its buffer: a texture can't be
+    // read and written in the same draw, and WebGL silently skips the draw if it is.
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, mapTex || null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, bufs[0].fb);
     gl.viewport(0, 0, bw, bh);
     gl.uniform2f(uRes, bw, bh);

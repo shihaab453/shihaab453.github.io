@@ -22,6 +22,8 @@ document.querySelectorAll('[data-mail]').forEach(a => {
 
 // Sections with the dark smoke background (homepage hero, Writing band, post header).
 const SMOKE = '.hero, .band, .post-hero';
+// True while an enlarged video covers the page: the smoke stops drawing underneath it.
+let smokeHeld = false;
 
 // Nav: glass the whole way down. Dark ink over the white sections, white ink elsewhere.
 const nav = document.getElementById('nav');
@@ -562,9 +564,10 @@ function flow(canvas) {
     if (prevTick && now - prevTick < 50) gap += (now - prevTick - gap) * 0.1;
     prevTick = now;
     if (tick++ % Math.max(1, Math.floor(1000 / 52 / gap)) === 0) draw(now);
-    raf = visible ? requestAnimationFrame(loop) : 0;
+    raf = visible && !smokeHeld ? requestAnimationFrame(loop) : 0;
     if (!raf) prevNow = prevTick = null;  // don't count off-screen time as one huge frame
   };
+  addEventListener('smoke-resume', () => { if (visible && !raf) raf = requestAnimationFrame(loop); });
   if (still) {
     draw(0);
     addEventListener('resize', () => draw(0));
@@ -614,7 +617,7 @@ if (toc) {
 
 // Enlarge: move the video's figure into a dialog over the page (not full screen),
 // leaving a same-sized gap behind so the page doesn't jump. Esc, the Close
-// button or a click outside the video puts it back.
+// button or a click outside the video puts it back. The smoke pauses meanwhile.
 document.querySelectorAll('.vid-size').forEach(btn => {
   const fig = btn.closest('figure');
   const v = fig.querySelector('video');
@@ -635,6 +638,8 @@ document.querySelectorAll('.vid-size').forEach(btn => {
     fig.replaceWith(gap);
     dlg.appendChild(fig);
     btn.textContent = 'Close';
+    smokeHeld = true;
+    document.body.classList.add('vid-open');
     dlg.showModal();
     resume(playing);
   });
@@ -644,6 +649,9 @@ document.querySelectorAll('.vid-size').forEach(btn => {
     if (gap) gap.replaceWith(fig);
     gap = null;
     btn.textContent = 'Enlarge';
+    smokeHeld = false;
+    document.body.classList.remove('vid-open');
+    dispatchEvent(new Event('smoke-resume'));
     resume(playing);
     btn.focus();
   });

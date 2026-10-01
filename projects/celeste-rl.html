@@ -75,17 +75,12 @@
   </div>
 
 <div class="frame post-body cs-body">
-  <article class="prose">
-
-    <h2 id="overview" style="margin-top:0">Overview</h2>
-    <p class="standfirst">Celeste RL trains an agent to play <em>Celeste</em> from the game&rsquo;s state, pressing only the buttons in its controls menu, on unmodified game physics.</p>
-    <p>Most of it is Python: a Gymnasium environment, PPO training with Stable-Baselines3 and PyTorch, and experiments whose plans and analyses are committed before the data exists. A small C# plugin for the game&rsquo;s mod loader lets <em>Celeste</em> step as fast as the agent can act.</p>
-    <p>The hard part came before any learning. The existing tools ran at about 30 steps a second, and nobody had checked them for the kind of exactness RL needs. Once the environment was fast and verified, the results were mixed, and they&rsquo;re all reported. Without demonstrations, PPO never cleared Room 1. With seven demonstrations found by a search, training from varied starts beat a fixed start by 22.6 points on held-out states. That did not replicate in Room 2.</p>
-    <p class="scope">Scope so far: Chapter 1 has 20 rooms. Rooms 1 and 2 have been attempted. Neither has reached the project&rsquo;s 99% held-out reliability target.</p>
-
-    <nav class="toc" aria-label="On this page">
+<div class="cs-layout">
+  <aside class="cs-side">
+    <nav class="toc" id="toc" aria-label="On this page">
       <b>On this page</b>
       <ol>
+        <li><a href="#overview">Overview</a></li>
         <li><a href="#bottleneck">The bottleneck</a></li>
         <li><a href="#environment">Building the environment</a></li>
         <li><a href="#speed">Making it fast enough</a></li>
@@ -99,6 +94,15 @@
         <li><a href="#learned">What I learned</a></li>
       </ol>
     </nav>
+  </aside>
+  <div class="cs-main">
+  <article class="prose">
+
+    <h2 id="overview" style="margin-top:0">Overview</h2>
+    <p class="standfirst">Celeste RL trains an agent to play <em>Celeste</em> from the game&rsquo;s state, pressing only the buttons in its controls menu, on unmodified game physics.</p>
+    <p>Most of it is Python: a Gymnasium environment, PPO training with Stable-Baselines3 and PyTorch, and experiments whose plans and analyses are committed before the data exists. A small C# plugin for the game&rsquo;s mod loader lets <em>Celeste</em> step as fast as the agent can act.</p>
+    <p>The hard part came before any learning. The existing tools ran at about 30 steps a second, and nobody had checked them for the kind of exactness RL needs. Once the environment was fast and verified, the results were mixed, and they&rsquo;re all reported. Without demonstrations, PPO never cleared Room 1. With seven demonstrations found by a search, training from varied starts beat a fixed start by 22.6 points on held-out states. That did not replicate in Room 2.</p>
+    <p class="scope">Scope so far: Chapter 1 has 20 rooms. Rooms 1 and 2 have been attempted. Neither has reached the project&rsquo;s 99% held-out reliability target.</p>
 
     <h2 id="bottleneck">The bottleneck</h2>
     <p><em>Celeste</em> runs at 60 frames per second. Its community automation tool, CelesteTAS, plays inputs back from a file and reports the game&rsquo;s state over a local HTTP interface, but it has no endpoint that accepts inputs. So my first bridge appends one input line per step to the file CelesteTAS is playing, then waits for the game to reach that frame. The file always ends at the paused frame, so an input can never land on the wrong frame or play twice.</p>
@@ -301,6 +305,8 @@
     <a class="repo" href="../#work"><svg class="chev flip"><use href="#chev"/></svg> All work</a>
     <a class="repo" href="https://github.com/shihaab453/celeste-rl">Code and full reports on GitHub <svg class="chev"><use href="#chev"/></svg></a>
   </div>
+  </div>
+</div>
 </div>
 
 </main>

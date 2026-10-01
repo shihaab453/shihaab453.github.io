@@ -591,3 +591,17 @@ document.querySelectorAll('video.preview').forEach(v => {
   }, { threshold: 0.25 }).observe(v);
   label();
 });
+
+// Case study contents: highlight the section being read.
+const toc = document.getElementById('toc');
+if (toc) {
+  const links = new Map([...toc.querySelectorAll('a[href^="#"]')].map(a => [a.getAttribute('href').slice(1), a]));
+  const heads = [...links.keys()].map(id => document.getElementById(id)).filter(Boolean);
+  const mark = () => {
+    let current = heads[0];
+    for (const h of heads) if (h.getBoundingClientRect().top < innerHeight * 0.3) current = h;
+    links.forEach((a, id) => a.classList.toggle('on', id === current.id));
+  };
+  addEventListener('scroll', mark, { passive: true });
+  mark();
+}

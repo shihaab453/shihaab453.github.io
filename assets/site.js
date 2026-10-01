@@ -94,8 +94,6 @@ const FRAG = `
   uniform float useMap;
   uniform vec4 stir[12];     // fallback: short mouse trail, xy = where (0..1), zw = velocity
   uniform float stirAmt[12]; // how much of each trail point is left (fades out)
-  uniform float ribs;        // ribbed glass strips across the section (0 = none)
-  uniform vec2 ribMap;       // canvas x -> section x: scale, offset (the canvas overhangs)
 
   float hash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -117,31 +115,17 @@ const FRAG = `
 
   void main() {
     vec2 uv = gl_FragCoord.xy / res;
-    vec2 here = uv;                          // unrefracted, for the mouse stir map
-
-    // Ribbed glass, drawn here instead of with per-strip CSS blur: each strip
-    // shows a magnified, softened slice of the smoke centred on itself, which
-    // gives the same breaks at the strip edges for a fraction of the cost.
-    if (ribs > 0.5) {
-      float hx = uv.x * ribMap.x + ribMap.y;
-      if (hx > 0.0 && hx < 1.0) {
-        float c = (floor(hx * ribs) + 0.5) / ribs;
-        hx = c + (hx - c) * 0.45;
-        uv.x = (hx - ribMap.y) / ribMap.x;
-      }
-    }
-
     vec2 p = vec2(uv.x * res.x / res.y, uv.y) * 0.85;
     p.x -= t * 0.012;                         // the whole field drifts right, slowly
 
     // mouse stirring: read how far the smoke here has been pushed
     vec2 push = vec2(0.0);
     if (useMap > 0.5) {
-      push = texture2D(stirMap, here).xy;
+      push = texture2D(stirMap, uv).xy;
     } else {
       // fallback: each recent trail point pushes along the mouse's direction, with a
       // little curl, fading out over a second or two
-      vec2 st = vec2(here.x * res.x / res.y, here.y);
+      vec2 st = vec2(uv.x * res.x / res.y, uv.y);
       for (int i = 0; i < 12; i++) {
         float a = stirAmt[i];
         if (a <= 0.0) continue;
@@ -180,17 +164,85 @@ const FRAG = `
     // dims its orange a little so the text over it stays calm
     col = mix(col * mix(0.32, 1.0, warm), col * mix(0.30, 0.80, warm), dim);
 
-    // the slight saturation boost the canvas used to get from CSS
-    float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
-    col = max(mix(vec3(lum), col, 1.15), 0.0);
-    col += (hash(gl_FragCoord.xy + fract(t)) - 0.5) / 255.0;   // grain, stops banding
-
     gl_FragColor = vec4(col, 1.0);
   }`;
 
-// Smoke resolution: one smoke pixel per QUALITY screen pixels, at most MAX_PIXELS.
-const QUALITY = 3, MAX_PIXELS = 900000;
 const VERT = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0.0, 1.0); }';
+
+// The look comes from two blurs: the whole smoke is blurred 14px with a slight
+// saturation boost, then each ribbed glass strip blurs what is behind it 14px
+// again, separately. Browsers did these as CSS filters on full-screen layers,
+// which was most of the lag. Here they run on the GPU at the smoke's own low
+// resolution, and a last pass draws the result at screen resolution with each
+// strip's edges kept sharp.
+const BLUR_PX = 14, SATURATE = 1.15, MIRROR = 0;
+
+const BLUR = `
+  precision highp float;
+  uniform sampler2D src;
+  uniform vec2 srcRes;     // texture size in texels
+  uniform vec2 dir;        // (1, 0) or (0, 1)
+  uniform float sigma;     // blur radius in texels
+  uniform float strips;    // 0: blur everywhere; 1: blur inside each glass strip
+  uniform float ribs;      // number of strips
+  uniform vec4 box;        // the section in this texture: left, right, bottom, top (0..1)
+  uniform float mirror;    // edge mode inside a strip: 1 mirror, 0 clamp
+  uniform float sat;       // saturation after the blur (1 = none)
+
+  void main() {
+    vec2 uv = gl_FragCoord.xy / srcRes;
+    float n = dot(srcRes, dir);                    // texels along this direction
+    float c = dot(gl_FragCoord.xy, dir) - 0.5;     // this texel, as an index
+    float lo = 0.0, hi = n - 1.0;                  // texels this one may read
+    if (strips > 0.5) {
+      float a0, a1;
+      if (dir.x > 0.5) {
+        float hx = (uv.x - box.x) / (box.y - box.x);
+        float i = clamp(floor(hx * ribs), 0.0, ribs - 1.0);
+        a0 = box.x + (box.y - box.x) * i / ribs;
+        a1 = box.x + (box.y - box.x) * (i + 1.0) / ribs;
+      } else { a0 = box.z; a1 = box.w; }
+      // texels whose centres fall inside this strip
+      lo = max(lo, ceil(a0 * n - 0.5));
+      hi = min(hi, floor(a1 * n - 0.5));
+    }
+    vec3 acc = vec3(0.0); float wsum = 0.0;
+    for (int k = -12; k <= 12; k++) {         // 3.5 sigma at the usual ~3.5 texels
+      float o = float(k);
+      float w = exp(-0.5 * o * o / (sigma * sigma));
+      float q = c + o;
+      if (mirror > 0.5) { if (q < lo) q = 2.0 * lo - q; if (q > hi) q = 2.0 * hi - q; }
+      q = clamp(q, lo, hi);
+      vec2 at = dir.x > 0.5 ? vec2((q + 0.5) / srcRes.x, uv.y) : vec2(uv.x, (q + 0.5) / srcRes.y);
+      acc += w * texture2D(src, at).rgb; wsum += w;
+    }
+    vec3 col = acc / wsum;
+    float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    gl_FragColor = vec4(mix(vec3(lum), col, sat), 1.0);
+  }`;
+
+const FINAL = `
+  precision highp float;
+  uniform sampler2D src;
+  uniform vec2 outRes, srcRes;
+  uniform float ribs;
+  uniform vec4 box;
+  void main() {
+    vec2 uv = gl_FragCoord.xy / outRes;
+    if (ribs > 0.5) {
+      // stay inside this strip's own texels, so strip edges stay sharp
+      float hx = (uv.x - box.x) / (box.y - box.x);
+      if (hx >= 0.0 && hx < 1.0) {
+        float i = floor(hx * ribs);
+        float a0 = box.x + (box.y - box.x) * i / ribs, a1 = box.x + (box.y - box.x) * (i + 1.0) / ribs;
+        float lo = (ceil(a0 * srcRes.x - 0.5) + 0.5) / srcRes.x, hi = (floor(a1 * srcRes.x - 0.5) + 0.5) / srcRes.x;
+        uv.x = clamp(uv.x, lo, hi);
+      }
+      float lo = (ceil(box.z * srcRes.y - 0.5) + 0.5) / srcRes.y, hi = (floor(box.w * srcRes.y - 0.5) + 0.5) / srcRes.y;
+      if (uv.y > box.z && uv.y < box.w) uv.y = clamp(uv.y, lo, hi);
+    }
+    gl_FragColor = texture2D(src, uv);
+  }`;
 
 // The stir map: a small image the smoke reads to see how far each spot has been pushed.
 // Every frame it's redrawn from the previous frame: carried right with the drift, new
@@ -382,7 +434,42 @@ function flow(canvas) {
   const gl = canvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false });
   if (!gl) return;
   const prog = program(gl, VERT, FRAG);
-  if (!prog) return;
+  const blur = program(gl, VERT, BLUR), fin = program(gl, VERT, FINAL);
+  if (!prog || !blur || !fin) return;
+  const UB = n => gl.getUniformLocation(blur, n), UF = n => gl.getUniformLocation(fin, n);
+  const ub = {}, uf = {};
+  ['src', 'srcRes', 'dir', 'sigma', 'strips', 'ribs', 'box', 'mirror', 'sat'].forEach(n => ub[n] = UB(n));
+  ['src', 'outRes', 'srcRes', 'ribs', 'box'].forEach(n => uf[n] = UF(n));
+  const flutes = canvas.parentElement.querySelector('.flutes');
+
+  // two low-resolution images that the passes take turns reading and writing
+  const bufs = [0, 1].map(() => ({ tex: gl.createTexture(), fb: gl.createFramebuffer() }));
+  let bw = 0, bh = 0, ribs = 0, box = [0, 1, 0, 1], sigX = 1, sigY = 1;
+  const layout = () => {
+    const cw = canvas.clientWidth, ch = canvas.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);   // only strip edges need it sharp
+    bw = Math.max(1, Math.round(cw / 4)); bh = Math.max(1, Math.round(ch / 4));
+    // Sharp across (the strip edges are vertical lines), soft down: full resolution
+    // horizontally, the smoke's own resolution vertically, stretched smoothly.
+    canvas.width = Math.max(1, Math.round(cw * dpr));
+    canvas.height = bh;
+    bufs.forEach(b => {
+      gl.bindTexture(gl.TEXTURE_2D, b.tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, bw, bh, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, b.fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, b.tex, 0);
+    });
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    sigX = BLUR_PX * bw / cw; sigY = BLUR_PX * bh / ch;
+    const c = canvas.getBoundingClientRect(), f = flutes && flutes.getBoundingClientRect();
+    ribs = f && f.width ? [...flutes.children].filter(el => el.offsetWidth > 0).length : 0;
+    if (ribs) box = [(f.left - c.left) / c.width, (f.right - c.left) / c.width, (c.bottom - f.bottom) / c.height, (c.bottom - f.top) / c.height];
+  };
+  let lastSize = '';
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -393,8 +480,6 @@ function flow(canvas) {
   const uRes = U('res'), uT = U('t'), uStir = U('stir'), uStirAmt = U('stirAmt'), uMap = U('stirMap'), uUseMap = U('useMap');
   gl.useProgram(prog);
   gl.uniform1f(U('dim'), +canvas.dataset.dim || 0);
-  const uRibs = U('ribs'), uRibMap = U('ribMap');
-  const flutes = canvas.parentElement.querySelector('.flutes');
 
   // Mouse stirring: hero and Writing band, real mouse only, never with reduced motion.
   const interactive = canvas.closest(SMOKE) && finePointer && !still;
@@ -402,7 +487,6 @@ function flow(canvas) {
   const stirTrail = interactive && !map ? trail(canvas) : null;
   canvas.dataset.stir = map ? 'lasting' : stirTrail ? 'trail' : 'off';
 
-  let quality = QUALITY;
   const t0 = 40 + Math.random() * 60;   // start mid-flow, not from a blank field
   let prevNow = null;
   const draw = now => {
@@ -410,25 +494,13 @@ function flow(canvas) {
     prevNow = now;
     const mapTex = map ? map.step(dt) : null;
 
+    const size = canvas.clientWidth + 'x' + canvas.clientHeight + '@' + (window.devicePixelRatio || 1);
+    if (size !== lastSize) { lastSize = size; layout(); }
+
     gl.useProgram(prog);
-    // Sized in real screen pixels: each smoke pixel covers about "quality" of them,
-    // and the browser scales it up smoothly. Capped so 4K screens don't overdo it.
-    const dpr = window.devicePixelRatio || 1;
-    let k = quality;
-    const area = canvas.clientWidth * canvas.clientHeight * dpr * dpr;
-    if (area / (k * k) > MAX_PIXELS) k = Math.sqrt(area / MAX_PIXELS);
-    const w = Math.max(1, Math.round(canvas.clientWidth * dpr / k));
-    const h = Math.max(1, Math.round(canvas.clientHeight * dpr / k));
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w; canvas.height = h;
-      // where the glass strips sit, in the canvas's own 0..1 across
-      const c = canvas.getBoundingClientRect(), f = flutes ? flutes.getBoundingClientRect() : null;
-      const n = flutes ? [...flutes.children].filter(el => el.offsetWidth > 0).length : 0;
-      gl.uniform1f(uRibs, f && f.width ? n : 0);
-      if (f && f.width) gl.uniform2f(uRibMap, c.width / f.width, (c.left - f.left) / f.width);
-    }
-    gl.viewport(0, 0, w, h);
-    gl.uniform2f(uRes, w, h);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, bufs[0].fb);
+    gl.viewport(0, 0, bw, bh);
+    gl.uniform2f(uRes, bw, bh);
     gl.uniform1f(uT, t0 + now / 1000);
     gl.uniform1f(uUseMap, mapTex ? 1 : 0);
     if (mapTex) {
@@ -441,28 +513,47 @@ function flow(canvas) {
       gl.uniform1fv(uStirAmt, stirTrail.amt);
     }
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-  };
 
-  // If a device can't keep up, step the resolution down a notch (never up again
-  // until reload), judged on the average of 45 frames so one hiccup doesn't count.
-  let frames = 0, slow = 0, lastT = null;
-  const adapt = now => {
-    if (lastT !== null && ++frames > 20) {
-      slow += now - lastT;
-      if (frames % 45 === 0) {
-        if (slow / 45 > 24 && quality < 6) quality = Math.min(6, quality * 1.35);
-        slow = 0;
-      }
+    // blur the smoke, then blur inside each strip: 0 -> 1 -> 0 -> 1 -> 0
+    gl.useProgram(blur);
+    gl.uniform1i(ub.src, 0);
+    gl.uniform2f(ub.srcRes, bw, bh);
+    gl.uniform1f(ub.ribs, ribs);
+    gl.uniform4fv(ub.box, box);
+    gl.uniform1f(ub.mirror, MIRROR);
+    gl.activeTexture(gl.TEXTURE0);
+    const passes = [[1, 0, 0, 1], [0, 1, 0, SATURATE]];
+    if (ribs) passes.push([1, 0, 1, 1], [0, 1, 1, 1]);
+    let from = 0;
+    for (const [dx, dy, strip, sat] of passes) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bufs[1 - from].fb);
+      gl.bindTexture(gl.TEXTURE_2D, bufs[from].tex);
+      gl.uniform2f(ub.dir, dx, dy);
+      gl.uniform1f(ub.sigma, dx ? sigX : sigY);
+      gl.uniform1f(ub.strips, strip);
+      gl.uniform1f(ub.sat, sat);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      from = 1 - from;
     }
-    lastT = now;
+
+    // draw it on screen at full resolution
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(fin);
+    gl.bindTexture(gl.TEXTURE_2D, bufs[from].tex);
+    gl.uniform1i(uf.src, 0);
+    gl.uniform2f(uf.outRes, canvas.width, canvas.height);
+    gl.uniform2f(uf.srcRes, bw, bh);
+    gl.uniform1f(uf.ribs, ribs);
+    gl.uniform4fv(uf.box, box);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
 
   let visible = true, raf = 0;
   const loop = now => {
     draw(now);
-    adapt(now);
     raf = visible ? requestAnimationFrame(loop) : 0;
-    if (!raf) { prevNow = null; lastT = null; }   // off-screen time isn't a slow frame
+    if (!raf) prevNow = null;       // don't count off-screen time as one huge frame
   };
   if (still) {
     draw(0);

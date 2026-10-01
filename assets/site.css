@@ -173,19 +173,16 @@ a { color: inherit; text-decoration: none; }
   width: 112%;
   height: 112%;
   display: block;
-  filter: blur(14px) saturate(1.15);
   opacity: 0;
   transition: opacity 1.5s ease;
 }
 .flow.on { opacity: 1; }
-.glow:has(~ .flow.on) i { animation: none; }
+.glow:has(~ .flow.on) { display: none; }
 
 /* ribbed glass */
 .flutes { position: absolute; inset: 0; display: flex; }
 .flutes span {
   flex: 1;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   background: linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,0) 30%, rgba(0,0,0,.12));
 }
 

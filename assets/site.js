@@ -94,6 +94,8 @@ const FRAG = `
   uniform float useMap;
   uniform vec4 stir[12];     // fallback: short mouse trail, xy = where (0..1), zw = velocity
   uniform float stirAmt[12]; // how much of each trail point is left (fades out)
+  uniform float ribs;        // ribbed glass strips across the section (0 = none)
+  uniform vec2 ribMap;       // canvas x -> section x: scale, offset (the canvas overhangs)
 
   float hash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -115,17 +117,31 @@ const FRAG = `
 
   void main() {
     vec2 uv = gl_FragCoord.xy / res;
+    vec2 here = uv;                          // unrefracted, for the mouse stir map
+
+    // Ribbed glass, drawn here instead of with per-strip CSS blur: each strip
+    // shows a magnified, softened slice of the smoke centred on itself, which
+    // gives the same breaks at the strip edges for a fraction of the cost.
+    if (ribs > 0.5) {
+      float hx = uv.x * ribMap.x + ribMap.y;
+      if (hx > 0.0 && hx < 1.0) {
+        float c = (floor(hx * ribs) + 0.5) / ribs;
+        hx = c + (hx - c) * 0.45;
+        uv.x = (hx - ribMap.y) / ribMap.x;
+      }
+    }
+
     vec2 p = vec2(uv.x * res.x / res.y, uv.y) * 0.85;
     p.x -= t * 0.012;                         // the whole field drifts right, slowly
 
     // mouse stirring: read how far the smoke here has been pushed
     vec2 push = vec2(0.0);
     if (useMap > 0.5) {
-      push = texture2D(stirMap, uv).xy;
+      push = texture2D(stirMap, here).xy;
     } else {
       // fallback: each recent trail point pushes along the mouse's direction, with a
       // little curl, fading out over a second or two
-      vec2 st = vec2(uv.x * res.x / res.y, uv.y);
+      vec2 st = vec2(here.x * res.x / res.y, here.y);
       for (int i = 0; i < 12; i++) {
         float a = stirAmt[i];
         if (a <= 0.0) continue;
@@ -164,9 +180,14 @@ const FRAG = `
     // dims its orange a little so the text over it stays calm
     col = mix(col * mix(0.32, 1.0, warm), col * mix(0.30, 0.80, warm), dim);
 
+    // the slight saturation boost the canvas used to get from CSS
+    float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    col = max(mix(vec3(lum), col, 1.15), 0.0);
+
     gl_FragColor = vec4(col, 1.0);
   }`;
 
+const SCALE = 8;
 const VERT = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0.0, 1.0); }';
 
 // The stir map: a small image the smoke reads to see how far each spot has been pushed.
@@ -370,6 +391,8 @@ function flow(canvas) {
   const uRes = U('res'), uT = U('t'), uStir = U('stir'), uStirAmt = U('stirAmt'), uMap = U('stirMap'), uUseMap = U('useMap');
   gl.useProgram(prog);
   gl.uniform1f(U('dim'), +canvas.dataset.dim || 0);
+  const uRibs = U('ribs'), uRibMap = U('ribMap');
+  const flutes = canvas.parentElement.querySelector('.flutes');
 
   // Mouse stirring: hero and Writing band, real mouse only, never with reduced motion.
   const interactive = canvas.closest(SMOKE) && finePointer && !still;
@@ -385,9 +408,18 @@ function flow(canvas) {
     const mapTex = map ? map.step(dt) : null;
 
     gl.useProgram(prog);
-    const w = Math.max(1, Math.round(canvas.clientWidth / 4));
-    const h = Math.max(1, Math.round(canvas.clientHeight / 4));
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    // Drawn at a fraction of screen size and smoothly scaled up: the smoke is soft
+    // anyway, so this replaces a full-screen CSS blur for free.
+    const w = Math.max(1, Math.round(canvas.clientWidth / SCALE));
+    const h = Math.max(1, Math.round(canvas.clientHeight / SCALE));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w; canvas.height = h;
+      // where the glass strips sit, in the canvas's own 0..1 across
+      const c = canvas.getBoundingClientRect(), f = flutes ? flutes.getBoundingClientRect() : null;
+      const n = flutes ? [...flutes.children].filter(el => el.offsetWidth > 0).length : 0;
+      gl.uniform1f(uRibs, f && f.width ? n : 0);
+      if (f && f.width) gl.uniform2f(uRibMap, c.width / f.width, (c.left - f.left) / f.width);
+    }
     gl.viewport(0, 0, w, h);
     gl.uniform2f(uRes, w, h);
     gl.uniform1f(uT, t0 + now / 1000);

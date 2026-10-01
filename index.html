@@ -201,7 +201,7 @@
         <h3>WCA Analysis</h3>
         <p>An analysis of the World Cube Association's results export, covering every official speedcubing competition and competitor on record. Ten questions across three notebooks, each answered and then tested against the obvious answer.</p>
         <ul class="facts">
-          <li>A trend model that fit the 3x3 world record with r&sup2; &asymp; 0.95 still predicted the sub-3-second record 2.5 to 4+ years too early.</li>
+          <li>A trend model that fit the 3x3 world record with r&sup2; &asymp; 0.95 still predicted the sub-3-second record 2.6 years too early (2.5 to 4+ across fits).</li>
           <li>No home advantage. Comparing about 13,900 competitors against themselves, people perform closer to their best away from home (p&nbsp;=&nbsp;1.3e-67).</li>
           <li>Caught two data problems in the loaders, duplicate competitor rows and mixed-type event IDs, and pinned both with a pytest suite that runs in CI.</li>
         </ul>
@@ -231,8 +231,8 @@
         <h3>DualSense Quick Menu</h3>
         <p>A PS5-style control centre for Windows. Press the PS button on a DualSense mid-game and an overlay opens for Spotify, volume, switching apps and sleep or shutdown, all without putting the controller down.</p>
         <ul class="facts">
-          <li>Browse Liked Songs and playlists, control playback, and see a Now Playing card with real album art.</li>
-          <li>A controller-driven Alt-Tab, built fresh from the live window list each time it opens.</li>
+          <li>Fixed input lag in CPU-heavy games, where presses waited <span style="white-space:nowrap">50&ndash;100&nbsp;ms</span> for CPU time, by raising the input threads above the game&rsquo;s priority.</li>
+          <li>Spotify browsing and playback with a Now Playing card, plus a controller-driven Alt-Tab built from the live window list.</li>
           <li>In closed alpha. Every build runs the tests, packages with PyInstaller, then self-tests the finished exe before it's zipped.</li>
         </ul>
         <div class="stack">

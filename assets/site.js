@@ -183,11 +183,13 @@ const FRAG = `
     // the slight saturation boost the canvas used to get from CSS
     float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col = max(mix(vec3(lum), col, 1.15), 0.0);
+    col += (hash(gl_FragCoord.xy + fract(t)) - 0.5) / 255.0;   // grain, stops banding
 
     gl_FragColor = vec4(col, 1.0);
   }`;
 
-const SCALE = 4;
+// Smoke resolution: one smoke pixel per QUALITY screen pixels, at most MAX_PIXELS.
+const QUALITY = 3, MAX_PIXELS = 900000;
 const VERT = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0.0, 1.0); }';
 
 // The stir map: a small image the smoke reads to see how far each spot has been pushed.
@@ -400,6 +402,7 @@ function flow(canvas) {
   const stirTrail = interactive && !map ? trail(canvas) : null;
   canvas.dataset.stir = map ? 'lasting' : stirTrail ? 'trail' : 'off';
 
+  let quality = QUALITY;
   const t0 = 40 + Math.random() * 60;   // start mid-flow, not from a blank field
   let prevNow = null;
   const draw = now => {
@@ -408,10 +411,14 @@ function flow(canvas) {
     const mapTex = map ? map.step(dt) : null;
 
     gl.useProgram(prog);
-    // Drawn at a fraction of screen size and smoothly scaled up: the smoke is soft
-    // anyway, so this replaces a full-screen CSS blur for free.
-    const w = Math.max(1, Math.round(canvas.clientWidth / SCALE));
-    const h = Math.max(1, Math.round(canvas.clientHeight / SCALE));
+    // Sized in real screen pixels: each smoke pixel covers about "quality" of them,
+    // and the browser scales it up smoothly. Capped so 4K screens don't overdo it.
+    const dpr = window.devicePixelRatio || 1;
+    let k = quality;
+    const area = canvas.clientWidth * canvas.clientHeight * dpr * dpr;
+    if (area / (k * k) > MAX_PIXELS) k = Math.sqrt(area / MAX_PIXELS);
+    const w = Math.max(1, Math.round(canvas.clientWidth * dpr / k));
+    const h = Math.max(1, Math.round(canvas.clientHeight * dpr / k));
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w; canvas.height = h;
       // where the glass strips sit, in the canvas's own 0..1 across
@@ -436,11 +443,26 @@ function flow(canvas) {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
 
+  // If a device can't keep up, step the resolution down a notch (never up again
+  // until reload), judged on the average of 45 frames so one hiccup doesn't count.
+  let frames = 0, slow = 0, lastT = null;
+  const adapt = now => {
+    if (lastT !== null && ++frames > 20) {
+      slow += now - lastT;
+      if (frames % 45 === 0) {
+        if (slow / 45 > 24 && quality < 6) quality = Math.min(6, quality * 1.35);
+        slow = 0;
+      }
+    }
+    lastT = now;
+  };
+
   let visible = true, raf = 0;
   const loop = now => {
     draw(now);
+    adapt(now);
     raf = visible ? requestAnimationFrame(loop) : 0;
-    if (!raf) prevNow = null;       // don't count off-screen time as one huge frame
+    if (!raf) { prevNow = null; lastT = null; }   // off-screen time isn't a slow frame
   };
   if (still) {
     draw(0);

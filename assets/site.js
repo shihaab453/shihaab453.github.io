@@ -582,7 +582,7 @@ document.querySelectorAll('canvas.flow').forEach(flow);
 // Project preview videos: play only while on screen, with a pause button.
 // With reduced motion they wait on their poster frame until someone presses Play.
 document.querySelectorAll('video.preview').forEach(v => {
-  const btn = v.closest('figure') && v.closest('figure').querySelector('.vid-toggle');
+  const btn = v.closest('figure') && v.closest('figure').querySelector('.vid-toggle:not(.vid-size)');
   let held = still;
   const label = () => { if (btn) btn.textContent = v.paused ? 'Play' : 'Pause'; };
   v.addEventListener('play', label);
@@ -611,3 +611,40 @@ if (toc) {
   addEventListener('scroll', mark, { passive: true });
   mark();
 }
+
+// Enlarge: move the video's figure into a dialog over the page (not full screen),
+// leaving a same-sized gap behind so the page doesn't jump. Esc, the Close
+// button or a click outside the video puts it back.
+document.querySelectorAll('.vid-size').forEach(btn => {
+  const fig = btn.closest('figure');
+  const v = fig.querySelector('video');
+  const dlg = document.createElement('dialog');
+  dlg.className = 'vid-modal';
+  dlg.setAttribute('aria-label', 'Enlarged video');
+  document.body.appendChild(dlg);
+  let gap = null;
+  // Moving a video in the page pauses it, a moment after the move; restart after that.
+  const resume = playing => { if (playing) setTimeout(() => v.play().catch(() => {}), 60); };
+  btn.addEventListener('click', () => {
+    if (dlg.open) { dlg.close(); return; }
+    const playing = !v.paused;
+    gap = document.createElement('div');
+    gap.style.height = fig.offsetHeight + 'px';
+    gap.style.width = fig.offsetWidth + 'px';
+    gap.style.maxWidth = '100%';
+    fig.replaceWith(gap);
+    dlg.appendChild(fig);
+    btn.textContent = 'Close';
+    dlg.showModal();
+    resume(playing);
+  });
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', () => {
+    const playing = !v.paused;
+    if (gap) gap.replaceWith(fig);
+    gap = null;
+    btn.textContent = 'Enlarge';
+    resume(playing);
+    btn.focus();
+  });
+});

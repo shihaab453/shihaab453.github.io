@@ -381,6 +381,11 @@ h2 {
 /* plain dim, no blur: a blurred backdrop is redrawn on every video frame and made playback stutter */
 .vid-modal::backdrop { background: rgba(6, 20, 26, .9); }
 .vid-modal .video-window { width: min(92vw, calc((100vh - 170px) * 16 / 9)); }
+/* While it's open, skip work nobody can see behind the dim: the glass nav,
+   the pulse, and the window's large soft shadow. */
+.vid-modal .window { box-shadow: none; outline: 0; }
+.vid-open .nav { visibility: hidden; }
+.vid-open .pulse { animation: none; }
 @media (max-width: 700px) { .vid-size { display: none; } }
 .flag-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); }
 .flag-stats > div { padding: 30px var(--pad) 32px; display: flex; flex-direction: column; gap: 8px; }

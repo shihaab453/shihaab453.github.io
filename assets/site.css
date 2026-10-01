@@ -177,7 +177,7 @@ a { color: inherit; text-decoration: none; }
   transition: opacity 1.5s ease;
 }
 .flow.on { opacity: 1; }
-.glow:has(~ .flow.on) { display: none; }
+.glow:has(~ .flow.on) { display: none; }   /* fallback only: hidden under the smoke */
 
 /* ribbed glass */
 .flutes { position: absolute; inset: 0; display: flex; }

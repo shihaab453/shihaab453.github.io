@@ -378,7 +378,8 @@ h2 {
 /* Enlarged video: the same player, moved into a dialog over a dimmed page.
    Sized to the window's height so the whole figure, caption included, fits. */
 .vid-modal { padding: 0; border: 0; background: none; max-width: none; max-height: none; overflow: visible; }
-.vid-modal::backdrop { background: rgba(6, 20, 26, .82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+/* plain dim, no blur: a blurred backdrop is redrawn on every video frame and made playback stutter */
+.vid-modal::backdrop { background: rgba(6, 20, 26, .9); }
 .vid-modal .video-window { width: min(92vw, calc((100vh - 170px) * 16 / 9)); }
 @media (max-width: 700px) { .vid-size { display: none; } }
 .flag-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); }

@@ -187,7 +187,7 @@ const FRAG = `
     gl_FragColor = vec4(col, 1.0);
   }`;
 
-const SCALE = 8;
+const SCALE = 4;
 const VERT = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0.0, 1.0); }';
 
 // The stir map: a small image the smoke reads to see how far each spot has been pushed.

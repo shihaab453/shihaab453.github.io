@@ -553,11 +553,17 @@ function flow(canvas) {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
 
-  let visible = true, raf = 0;
+  // Around 60 draws a second on fast screens. At 120, 144 or 165 Hz the smoke
+  // would otherwise redraw two or three times as often for no visible gain, so
+  // there it draws every 2nd or 3rd refresh, evenly spaced, never below 52 a
+  // second. The drift and stirs are timed in seconds, so their speed is the same.
+  let visible = true, raf = 0, tick = 0, prevTick = 0, gap = 1000 / 60;
   const loop = now => {
-    draw(now);
+    if (prevTick && now - prevTick < 50) gap += (now - prevTick - gap) * 0.1;
+    prevTick = now;
+    if (tick++ % Math.max(1, Math.floor(1000 / 52 / gap)) === 0) draw(now);
     raf = visible ? requestAnimationFrame(loop) : 0;
-    if (!raf) prevNow = null;       // don't count off-screen time as one huge frame
+    if (!raf) prevNow = prevTick = null;  // don't count off-screen time as one huge frame
   };
   if (still) {
     draw(0);

@@ -99,7 +99,7 @@
         <div class="visual v3">
           <figure class="window video-window">
             <div class="bar"><i></i><i></i><i></i><span>the agent playing Room 1</span><button class="vid-toggle" type="button">Pause</button></div>
-            <video class="preview" muted loop playsinline preload="metadata" poster="assets/celeste-rl-preview.png" aria-label="The reinforcement learning agent clearing Celeste Chapter 1, Room 1, with the game state it reads and the buttons it presses shown alongside">
+            <video class="preview" muted loop playsinline preload="metadata" poster="assets/celeste-rl-preview.webp" aria-label="The reinforcement learning agent clearing Celeste Chapter 1, Room 1, with the game state it reads and the buttons it presses shown alongside">
               <source src="assets/celeste-rl-preview.webm" type="video/webm">
               <source src="assets/celeste-rl-preview.mp4" type="video/mp4">
             </video>
@@ -157,7 +157,7 @@
       <div class="visual v1">
         <div class="window">
           <div class="bar"><i></i><i></i><i></i><span>wca-analysis</span></div>
-          <a href="assets/wca-wr-forecast.png" title="Open the chart at full size"><img class="shot-img" src="assets/wca-wr-forecast.png" width="1920" height="1200" loading="lazy" alt="Chart of the 3x3 world record single from 2003 to 2026 on a log scale. An exponential trend fitted with r squared 0.95 crosses 3 seconds in June 2023, but the record actually went below 3 seconds, to 2.76, in February 2026: 2.6 years later than the model predicted."></a>
+          <a href="assets/wca-wr-forecast.png" title="Open the chart at full size"><picture><source srcset="assets/wca-wr-forecast.webp" type="image/webp"><img class="shot-img" src="assets/wca-wr-forecast.png" width="1920" height="1200" loading="lazy" alt="Chart of the 3x3 world record single from 2003 to 2026 on a log scale. An exponential trend fitted with r squared 0.95 crosses 3 seconds in June 2023, but the record actually went below 3 seconds, to 2.76, in February 2026: 2.6 years later than the model predicted."></picture></a>
         </div>
       </div>
     </article>
@@ -189,7 +189,7 @@
       <div class="visual v2">
         <div class="window">
           <div class="bar"><i></i><i></i><i></i><span>dualsense-quickmenu</span></div>
-          <a href="assets/dualsense-overlay.jpg" title="Open the screenshot at full size"><img class="shot-img" src="assets/dualsense-overlay.jpg" width="1300" height="812" loading="lazy" alt="The DualSense Quick Menu overlay open over Rocket League: a Now Playing card showing the current Spotify track and album art, a Switch App card, and a row of tray icons for home, music, sound and power."></a>
+          <a href="assets/dualsense-overlay.jpg" title="Open the screenshot at full size"><picture><source srcset="assets/dualsense-overlay.webp" type="image/webp"><img class="shot-img" src="assets/dualsense-overlay.jpg" width="1300" height="812" loading="lazy" alt="The DualSense Quick Menu overlay open over Rocket League: a Now Playing card showing the current Spotify track and album art, a Switch App card, and a row of tray icons for home, music, sound and power."></picture></a>
         </div>
       </div>
     </article>
@@ -197,7 +197,7 @@
     <div class="visual v2 flag-video wide-figure">
       <figure class="window video-window">
         <div class="bar"><i></i><i></i><i></i><span>how a button press reaches the overlay</span></div>
-        <a href="assets/dualsense-architecture.png" title="Open the diagram at full size"><img class="shot-img" src="assets/dualsense-architecture.png" width="1920" height="1200" loading="lazy" alt="Architecture diagram. The DualSense sends raw HID reports over USB at about 125 Hz to an HID read thread, then a poll thread that samples every 8 ms and turns state into presses; both run at THREAD_PRIORITY_HIGHEST, above a game's normal-priority threads. A Qt signal passes presses to the Qt main thread, which draws the overlay and never waits on the network. Spotify calls go to a worker thread that talks to the Spotify Web API over HTTPS with PKCE OAuth. Under full CPU load, input had waited 50 to 100 ms for a turn, while the app's own work took under 7 ms."></a>
+        <a href="assets/dualsense-architecture.png" title="Open the diagram at full size"><picture><source srcset="assets/dualsense-architecture.webp" type="image/webp"><img class="shot-img" src="assets/dualsense-architecture.png" width="1920" height="1200" loading="lazy" alt="Architecture diagram. The DualSense sends raw HID reports over USB at about 125 Hz to an HID read thread, then a poll thread that samples every 8 ms and turns state into presses; both run at THREAD_PRIORITY_HIGHEST, above a game's normal-priority threads. A Qt signal passes presses to the Qt main thread, which draws the overlay and never waits on the network. Spotify calls go to a worker thread that talks to the Spotify Web API over HTTPS with PKCE OAuth. Under full CPU load, input had waited 50 to 100 ms for a turn, while the app's own work took under 7 ms."></picture></a>
       </figure>
     </div>
   </div>

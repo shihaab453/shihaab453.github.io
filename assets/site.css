@@ -315,6 +315,7 @@ h2 {
 }
 .window .bar { display: flex; align-items: center; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--grey); }
 .shot-img { display: block; width: 100%; height: auto; border-top: 1px solid var(--line); }
+.window picture { display: block; }
 .visual:has(.shot-img) { padding: 32px; }
 .window:has(.shot-img) { width: min(100%, 600px); }
 .window a:has(.shot-img) { display: block; cursor: zoom-in; }

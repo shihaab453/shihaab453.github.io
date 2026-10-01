@@ -610,3 +610,140 @@ footer small { justify-content: flex-end; font-family: var(--mono); font-size: 1
 }
 .lost .ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 36px; }
 .lost .ctas .btn { margin-top: 0; }
+
+
+/* ==========================================================================
+   Hero positioning, the short intro, project hooks, CTA hierarchy, and the
+   case study page (projects/celeste-rl.html).
+   ========================================================================== */
+
+/* hero: who I am, under the name */
+.hero h1 + .sub { margin: clamp(26px, 3vw, 36px) 0 0; max-width: 640px; font-size: clamp(19px, 1.7vw, 23px); font-weight: 400; line-height: 1.4; text-wrap: balance; }
+.hero .sub-quiet { margin: 12px 0 0; max-width: 560px; font-size: 16px; font-weight: 300; color: rgba(255,255,255,.72); }
+.hero .sub-quiet + .ctas { margin-top: clamp(28px, 3.4vw, 40px); }
+.hero-foot .where { font-family: var(--mono); font-size: 13px; color: rgba(255,255,255,.82); }
+
+/* short personal intro at the top of Work */
+.intro { padding: clamp(72px, 9vw, 120px) var(--pad) 0; max-width: 980px; }
+.intro-text {
+  margin: 0;
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.intro-more { margin: 20px 0 0; max-width: 640px; font-size: 18px; font-weight: 300; color: var(--grey); text-wrap: pretty; }
+.intro + .section-intro { padding-top: clamp(64px, 8vw, 104px); }
+
+/* project panels: a one-line hook under the title */
+.project .hook { margin: 0 0 16px; font-size: clamp(20px, 1.8vw, 24px); font-weight: 500; line-height: 1.3; letter-spacing: -0.015em; color: var(--ink); max-width: 520px; text-wrap: balance; }
+.project p + p { margin-top: 14px; }
+.project .muted { color: var(--grey); font-size: 16px; }
+
+/* CTA hierarchy: one filled button, one outline, then a plain text link */
+.cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; margin-top: 30px; }
+.cta-row .btn { padding: 12px 18px; font-size: 15px; }
+
+/* Celeste panel: the demo sits beside the copy */
+.flagship .visual.v3 { min-height: 0; padding: clamp(28px, 3vw, 40px); }
+.flagship .visual .video-window { width: 100%; }
+.flagship .visual .video-window figcaption { font-size: 11.5px; }
+
+/* DualSense: labelled facts, and the panel flipped so it reads differently */
+.facts.labelled li b { color: var(--ink); font-weight: 600; }
+.project.flip .visual { order: -1; }
+
+/* Writing: just the one piece for now */
+.posts.one { grid-template-columns: 1fr; max-width: 460px; }
+
+@media (max-width: 860px) {
+  .project.flip .visual { order: 0; }
+}
+@media (max-width: 560px) {
+  .hero h1 { font-size: clamp(56px, 17vw, 72px); }
+  .hero-foot { padding-top: 40px; }
+  .intro-more { font-size: 17px; }
+}
+
+/* ---------- case study page ---------- */
+
+.cs-hero .inner { text-align: center; }
+.cs-hero .deck { margin: 24px auto 0; max-width: 640px; font-size: clamp(18px, 1.7vw, 22px); font-weight: 300; line-height: 1.45; color: rgba(255,255,255,.86); text-wrap: balance; }
+.cs-hero .ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 32px; }
+
+.cs-stats { border-bottom: 1px solid var(--line); }
+.cs-stats.flag-stats { border-top: 0; }
+
+.cs-body { padding-top: clamp(48px, 6vw, 72px); }
+.toc { margin: 0 0 2.4em; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toc b { display: block; font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--grey); margin-bottom: 8px; }
+.prose .toc ol { columns: 2; column-gap: 32px; margin: 0; font-size: .9em; }
+.prose .toc li { margin: .3em 0; break-inside: avoid; }
+.prose .toc a { text-decoration: none; }
+.prose .toc a:hover { color: var(--orange); }
+.prose h2[id] { scroll-margin-top: 100px; }
+.prose .scope { font-family: var(--mono); font-size: 13px; line-height: 1.6; color: var(--grey); }
+
+/* pull-outs: one big figure with its explanation, set off by rules, not boxes */
+.pull { display: grid; grid-template-columns: minmax(150px, auto) 1fr; gap: 6px 28px; align-items: baseline; margin: 2em 0; padding: 22px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); }
+.pull b { font-size: clamp(44px, 5vw, 64px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--ink); white-space: nowrap; }
+.pull p { margin: 0; font-size: .95em; line-height: 1.55; color: #333; }
+.pull p strong { color: var(--ink); }
+.pull.warn b { color: var(--orange); }
+
+/* the stack, top to bottom */
+.pipe { list-style: none; margin: 1.8em 0; padding: 0; border-top: 1px solid var(--ink); }
+.prose .pipe li { display: grid; grid-template-columns: 80px 1fr; gap: 4px 20px; padding: 14px 0; margin: 0; border-bottom: 1px solid var(--line); }
+.prose .pipe li::before { display: none; }
+.pipe .lang { font-family: var(--mono); font-size: 12px; color: var(--orange); padding-top: .35em; }
+.pipe .name { font-weight: 600; color: var(--ink); line-height: 1.35; }
+.pipe .what { grid-column: 2; font-size: .88em; line-height: 1.5; color: var(--grey); }
+
+.prose .ledger td { white-space: normal; vertical-align: top; min-width: 150px; }
+.prose .ledger td:first-child { font-weight: 600; color: var(--ink); min-width: 120px; }
+.prose .ledger td:last-child { font-family: var(--mono); font-size: .9em; color: var(--ink); min-width: 170px; }
+.prose td.num, .prose th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.prose tr.total td { font-weight: 700; color: var(--ink); border-top: 1px solid var(--ink); }
+.prose .neg { color: #b42318; }
+
+.prose .chart-fig { border: 1px solid var(--line); padding: 16px 16px 6px; }
+.prose .chart-fig figcaption { margin: 8px 0 10px; }
+
+.lessons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 36px; margin: 1.2em 0 1.6em; }
+.lessons h3 { margin: 0 0 .3em; font-family: var(--mono); font-size: 13px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--grey); }
+.lessons ul { margin: 0; font-size: .95em; }
+
+@media (max-width: 640px) {
+  .pull { grid-template-columns: 1fr; }
+  .prose .toc ol { columns: 1; }
+  .lessons { grid-template-columns: 1fr; gap: 20px; }
+  .prose .pipe li { grid-template-columns: 1fr; }
+  .pipe .what { grid-column: 1; }
+}
+
+@media (max-width: 860px) {
+  footer { grid-template-columns: minmax(0, 1fr); }
+  footer nav { flex-wrap: wrap; gap: 12px 24px; }
+}
+@media (max-width: 640px) {
+  .prose .ledger thead { display: none; }
+  .prose .ledger, .prose .ledger tbody, .prose .ledger tr, .prose .ledger td { display: block; min-width: 0; }
+  .prose .ledger tr { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .prose .ledger td { padding: 2px 0; border: 0; }
+  .prose .ledger td:last-child { margin-top: 6px; }
+}
+.prose .results td:first-child { white-space: normal; min-width: 150px; }
+.prose em { padding-right: .06em; }
+.project em, .intro em, .deck em { padding-right: .06em; }
+.pull { grid-template-columns: 1fr; gap: 10px; }
+.pull p { max-width: 560px; }
+@media (max-width: 640px) {
+  .prose .results, .prose .table-wrap table { font-size: .8em; }
+  .prose .results th, .prose .results td, .prose .table-wrap td, .prose .table-wrap th { white-space: normal; padding: 9px 6px; }
+  .prose .results td:first-child { min-width: 0; }
+  .hero .ctas .btn { justify-content: center; }
+  .hero .ctas .btn-white { flex-basis: 100%; }
+  .hero .ctas .btn-ghost { flex: 1; }
+}
+.prose td.num strong { white-space: nowrap; }

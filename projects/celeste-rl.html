@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Celeste RL &mdash; Shihaab Alam</title>
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icon-32.png">
+<link rel="apple-touch-icon" href="/assets/icon-180.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Shihaab Alam">
+<meta property="og:url" content="https://shihaabalam.com/projects/celeste-rl.html">
+<meta property="og:title" content="Celeste RL: case study">
+<meta property="og:description" content="Teaching a reinforcement learning agent to play Celeste through the game's real controls: the environment, the experiments, and the results that didn't hold up.">
+<meta property="og:image" content="https://shihaabalam.com/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Teaching a reinforcement learning agent to play Celeste through the game's real controls: the environment, the experiments, and the results that didn't hold up.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter+Tight:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="chev" viewBox="0 0 16 16"><path d="M3 3.5 7.5 8 3 12.5M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <filter id="glass" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="glass-map" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="80" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<header class="nav" id="nav">
+  <a class="brand" href="../"><span class="mark">SA</span>Shihaab Alam</a>
+  <nav class="links">
+    <a href="../#work">Work</a>
+    <a href="../#writing">Writing</a>
+    <a href="../#contact">Contact</a>
+  </nav>
+  <div class="right">
+    <a href="https://www.linkedin.com/in/shihaabalam">LinkedIn</a>
+    <a href="https://github.com/shihaab453">GitHub</a>
+    <a class="btn btn-white btn-sm" href="../#contact">Get in touch</a>
+  </div>
+</header>
+
+<header class="band post-hero cs-hero">
+  <div class="glow" aria-hidden="true"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i></div>
+  <canvas class="flow" data-dim="1" aria-hidden="true"></canvas>
+  <div class="flutes" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="inner">
+    <p class="post-meta"><span class="step">#001</span><span>Case study &middot; 2026, in progress</span></p>
+    <h1>Celeste RL</h1>
+    <p class="deck">Teaching a reinforcement learning agent to play <em>Celeste</em> through the game&rsquo;s real controls.</p>
+    <div class="ctas">
+      <a class="btn btn-white" href="https://github.com/shihaab453/celeste-rl">GitHub <svg class="chev"><use href="#chev"/></svg></a>
+      <a class="btn btn-ghost" href="https://github.com/shihaab453/celeste-rl/tree/main/docs">Full reports</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="frame">
+    <div class="flag-stats cs-stats">
+      <div><b>2,600 fps</b><span>including resets, about 85&times; the existing interface</span></div>
+      <div><b>+22.6 pts</b><span>held-out improvement in Room 1, 6 of 6 matched seeds</span></div>
+      <div><b>469</b><span>unit tests, plus live checks against the running game</span></div>
+      <div><b>926 / 926</b><span>frames identical to normal-speed play on fixed traces</span></div>
+    </div>
+  </div>
+
+<div class="frame post-body cs-body">
+  <article class="prose">
+
+    <h2 id="overview" style="margin-top:0">Overview</h2>
+    <p class="standfirst">Celeste RL trains an agent to play <em>Celeste</em> from the game&rsquo;s state, pressing only the buttons in its controls menu, on unmodified game physics.</p>
+    <p>Most of it is Python: a Gymnasium environment, PPO training with Stable-Baselines3 and PyTorch, and experiments whose plans and analyses are committed before the data exists. A small C# plugin for the game&rsquo;s mod loader lets <em>Celeste</em> step as fast as the agent can act.</p>
+    <p>The hard part came before any learning. The existing tools ran at about 30 steps a second, and nobody had checked them for the kind of exactness RL needs. Once the environment was fast and verified, the results were mixed, and they&rsquo;re all reported. Without demonstrations, PPO never cleared Room 1. With seven demonstrations found by a search, training from varied starts beat a fixed start by 22.6 points on held-out states. That did not replicate in Room 2.</p>
+    <p class="scope">Scope so far: Chapter 1 has 20 rooms. Rooms 1 and 2 have been attempted. Neither has reached the project&rsquo;s 99% held-out reliability target.</p>
+
+    <nav class="toc" aria-label="On this page">
+      <b>On this page</b>
+      <ol>
+        <li><a href="#bottleneck">The bottleneck</a></li>
+        <li><a href="#environment">Building the environment</a></li>
+        <li><a href="#speed">Making it fast enough</a></li>
+        <li><a href="#correct">Proving it was correct</a></li>
+        <li><a href="#ppo">First PPO experiment</a></li>
+        <li><a href="#why">Why it failed</a></li>
+        <li><a href="#demos">Demonstrations</a></li>
+        <li><a href="#room1">Room 1 held-out result</a></li>
+        <li><a href="#room2">Room 2 replication</a></li>
+        <li><a href="#problems">Engineering problems</a></li>
+        <li><a href="#learned">What I learned</a></li>
+      </ol>
+    </nav>
+
+    <h2 id="bottleneck">The bottleneck</h2>
+    <p><em>Celeste</em> runs at 60 frames per second. Its community automation tool, CelesteTAS, plays inputs back from a file and reports the game&rsquo;s state over a local HTTP interface, but it has no endpoint that accepts inputs. So my first bridge appends one input line per step to the file CelesteTAS is playing, then waits for the game to reach that frame. The file always ends at the paused frame, so an input can never land on the wrong frame or play twice.</p>
+    <p>That bridge is exact, but it&rsquo;s tied to the game&rsquo;s clock. Over 1,000 measured steps, one frame advance took 32.6&nbsp;ms on average: about 30 steps a second. The first PPO experiment used two million transitions per seed. At 30 a second, that&rsquo;s about 18 hours of collection for one seed, before any learning.</p>
+    <p>Running the game headless didn&rsquo;t help. With the mods this setup needs, it crashed in the audio library after a savestate, so the project kept the normal renderer.</p>
+
+    <h2 id="environment">Building the environment</h2>
+    <p>The game runs in an isolated copy with three community tools: Everest (the mod loader), CelesteTAS (frame-exact input playback) and Speedrun Tool (savestates). From the agent down to the game:</p>
+    <ol class="pipe">
+      <li><span class="lang">Python</span><span class="name">PPO policy</span><span class="what">PyTorch and Stable-Baselines3, with a small CNN over the room grid.</span></li>
+      <li><span class="lang">Python</span><span class="name">Gymnasium environment</span><span class="what">Builds observations, computes reward and classifies how each episode ended.</span></li>
+      <li><span class="lang">Python</span><span class="name">Lockstep client</span><span class="what">The same <code>reset()</code> and <code>step()</code> as the slow reference bridge, over a local socket.</span></li>
+      <li><span class="lang">C#</span><span class="name">Lockstep plugin</span><span class="what">Hooks CelesteTAS&rsquo;s playback loop and replies with the new state after every frame.</span></li>
+      <li><span class="lang">Game</span><span class="name"><em>Celeste</em> with Everest</span><span class="what">The normal update with the normal frame length. Physics are never modified.</span></li>
+    </ol>
+    <ul>
+      <li><strong>Stepping.</strong> When every queued input has been played, the plugin sends the state to Python and waits for the next input instead of the next 60&nbsp;Hz tick. Only the waiting changes.</li>
+      <li><strong>Actions.</strong> 24 on/off inputs matching the game&rsquo;s controls menu, with pause, quick restart and journal disabled. Inputs are validated in both Python and the plugin, so no TAS command can be injected.</li>
+      <li><strong>Observations.</strong> Game state, not pixels: the player&rsquo;s position, speed, dashes, stamina, timers and movement state for the last four decisions; an 11-channel, 32&nbsp;&times;&nbsp;32 grid of tiles, spikes and hazards around the player; and the last four actions.</li>
+      <li><strong>Resets.</strong> A savestate taken one frame before the episode start restores in about 4&nbsp;ms. If an input starts a loading scene, the plugin waits for loading to finish, so every observation is a frame the agent can act on.</li>
+      <li><strong>Sessions.</strong> Each connection belongs to a numbered session. Replies only go to the connection that sent the command, and every pending command has a deadline. Any timeout or malformed reply ends the session, and recovery always goes through a full reset.</li>
+      <li><strong>Provenance.</strong> Every training run records its commit, the game build&rsquo;s file hashes and the observation schema version, and refuses to start if any of them drifts.</li>
+    </ul>
+
+    <h2 id="speed">Making it fast enough for RL</h2>
+    <div class="pull">
+      <b>~85&times;</b>
+      <p><strong>About 2,600 frames per second, resets included</strong>, up from about 30 per second through CelesteTAS&rsquo;s HTTP interface.</p>
+    </div>
+    <p>That speed is what made the experiments possible. The first PPO experiment ran three seeds of two million transitions, about six million in total, in about 6.3 hours on one laptop with the game minimised alongside. Each seed ran as one uninterrupted session with zero bridge faults and zero game relaunches. At the old speed, collection alone would have taken over two days.</p>
+    <p>Training ran at 421 to 487 steps per second, well below 2,600. The game stopped being the bottleneck; the policy and the PPO updates took most of the time.</p>
+
+    <h2 id="correct">Proving the environment was correct</h2>
+    <p>In RL, a subtly wrong environment usually doesn&rsquo;t crash. It teaches the agent something false, and the results look plausible. So the slow file-based bridge stayed in the project as the reference, and the fast one had to match it.</p>
+    <div class="table-wrap">
+      <table class="ledger">
+        <thead><tr><th>Check</th><th>How</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Frame fidelity</td><td>Fixed input traces played four ways: reference bridge, lockstep bridge, lockstep with 5, 50 and 500&nbsp;ms client delays, and plain TAS playback at normal speed. Traces cover a room transition with 7 dashes, spike deaths and respawns, and a pause-menu loading scene.</td><td>926 / 926 frames identical</td></tr>
+          <tr><td>Long runs</td><td>A 30-minute soak with periodic replay checks.</td><td>4,853,400 steps, 16,178 episodes, 808 / 808 replays identical, no errors</td></tr>
+          <tr><td>Fault handling</td><td>Misbehaving on purpose against the running game: stepping before reset, wrong start frames, replacing the connection mid-reset, disconnecting mid-step, and a client that stops reading replies.</td><td>13 / 13 live fault checks, including 100 rounds of replacing a connection mid-reset</td></tr>
+          <tr><td>Inputs</td><td>Every binding checked in the game, including both jump and dash keys, crouch dash, grab, and pause-menu confirm and cancel.</td><td>30 / 30 checks</td></tr>
+          <tr><td>Memory</td><td>A probe that isolates memory over long runs of resets.</td><td>Found a leak, fixed; memory now flat (<a href="#problems">below</a>)</td></tr>
+          <tr><td>Code</td><td>Unit tests, plus live checks against the game.</td><td>469 unit tests</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Complete game state matches the reference bridge frame by frame. Against normal-speed playback, position, speed, movement state, room and timer match on all 926 frames.</p>
+
+    <h2 id="ppo">First PPO experiment: no demonstrations</h2>
+    <p>Before any training, the project committed to trying Room 1 without demonstrations first, on a fixed budget, so the result would be reported whichever way it went. Three seeds of PPO, two million transitions each. The reward was +1 for reaching Room 2, &minus;1 for any failure and a tiny cost per frame, with no shaping.</p>
+    <div class="pull">
+      <b>0 clears</b>
+      <p><strong>in 50,369 training episodes</strong> across three seeds and six million transitions. Every training episode ended in death.</p>
+    </div>
+    <p>The agent didn&rsquo;t get further into the room either. Replaying saved checkpoints, the median furthest position was x&nbsp;76 at every point in training, the same as an untrained network of the same shape. The typical episode walked right, fell into the first pit and died on the spikes. No sampled episode passed x&nbsp;144 of the 261 needed.</p>
+
+    <h2 id="why">Why it failed</h2>
+    <ul>
+      <li><strong>The policy never left random play.</strong> Its entropy stayed within 7% of the maximum on every seed, close to pressing each button on a coin flip.</li>
+      <li><strong>The critic learned only that everything fails.</strong> The value estimate converged to almost exactly &minus;1.00, the return of an immediate failure.</li>
+      <li><strong>It wasn&rsquo;t capacity.</strong> Fitting the same network to a recorded clear reached 99.87% per-input accuracy, so the network and observation can represent a solution.</li>
+    </ul>
+    <p>A day later, an addendum to the report named three things the original had left out. The biggest is the action space: 24 independent on/off inputs that start at probability 0.5 mean a fresh policy holds about twelve buttons every frame, against 2.31 in a recorded clear, and the entropy bonus keeps it there. A second reward with distance shaping was inert too. From the fixed start, every failing episode returned the same value to six decimal places, so the shaping cancelled out of the learning signal. The same configuration without demonstrations scored 0 of 250.</p>
+
+    <h2 id="demos">Demonstrations</h2>
+    <p>The next step was to show the agent solutions, without anyone playing the game. A Go-Explore-style search, which replays savestates and reads the room&rsquo;s tile map, found seven complete clears of Room 1 in 20 to 77 seconds each. They differ in length by 50% and in 6 of 7 openings, so they&rsquo;re genuinely different routes.</p>
+    <p>Behavioural cloning on five of them, with two whole routes held out, gave a policy that cleared the room 3 times in 50. On the held-out routes it was worse than simply repeating its own last action: 39.7% of frames exactly right, against 85.5%. It hadn&rsquo;t learned the room. What it gave PPO was a starting point where successes sometimes happened.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Approach</th><th class="num">Success from the fixed start</th></tr></thead>
+        <tbody>
+          <tr><td>PPO only, either reward</td><td class="num">0%</td></tr>
+          <tr><td>Cloning only</td><td class="num">6% (3 of 50)</td></tr>
+          <tr><td>Cloning then PPO, first four runs</td><td class="num">82.5%, 98.0%, 98.5%, 0%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The last row is the important one. Three runs worked and one stood still for 400,000 transitions, from the same clone and configuration at a different point in the random stream. At that variance, a success rate from one run means very little, so the next experiment used matched seeds and many runs.</p>
+
+    <h2 id="room1">Room 1: the held-out experiment</h2>
+    <p>The question: does fine-tuning from varied starting states generalise better than fine-tuning from the fixed start? Twelve runs from the same clone were declared before training. Arm A trained from the fixed start. Arm B trained from varied starts, sampled from states the agent had already reached. Seeds 3 to 8 were matched across arms.</p>
+    <p><strong>Held-out evaluation:</strong> 200 frozen states from 11 routes found by separate searches. The evaluation and analysis plan was committed, with its hash, before any checkpoint touched them. Each route counts equally, and the confidence interval resamples whole seeds and whole routes, because neighbouring states on one route aren&rsquo;t independent.</p>
+    <div class="table-wrap">
+      <table class="results">
+        <thead><tr><th>Held out</th><th class="num">A: fixed</th><th class="num">B: varied</th><th class="num">B &minus; A</th></tr></thead>
+        <tbody>
+          <tr><td>Success, each route weighted equally</td><td class="num">52.2%</td><td class="num">74.8%</td><td class="num"><strong>+22.6 pts</strong></td></tr>
+          <tr><td>95% interval (seeds and routes resampled)</td><td></td><td></td><td class="num">+6.7 to +43.5</td></tr>
+          <tr><td>Exact paired sign-flip test</td><td></td><td></td><td class="num">p = 0.031</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure class="chart-fig">
+<svg class="chart" viewBox="0 0 400 300" role="img" aria-labelledby="cr-title cr-desc">
+<title id="cr-title">Held-out success by training seed, canonical versus varied starts</title>
+<desc id="cr-desc">Room 1: mean 52.2% with canonical starts and 74.8% with varied starts; all six seeds improved. Room 2: mean 86.8% and 80.9%; three seeds improved and three got worse.</desc>
+<line x1="44" x2="396" y1="242.0" y2="242.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="2" y="246.0" font-size="11" fill="#525252" font-family="Geist Mono, monospace">0%</text>
+<line x1="44" x2="396" y1="152.0" y2="152.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="2" y="156.0" font-size="11" fill="#525252" font-family="Geist Mono, monospace">50%</text>
+<line x1="44" x2="396" y1="62.0" y2="62.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="2" y="66.0" font-size="11" fill="#525252" font-family="Geist Mono, monospace">100%</text>
+<text x="135.0" y="20" text-anchor="middle" font-size="15" font-weight="700" fill="#0c0c0c">Room 1</text>
+<text x="135.0" y="38" text-anchor="middle" font-size="12" fill="#525252">+22.6 pts · p = 0.031</text>
+<g><title>Seed 3: 59.4% → 76.4%</title><line x1="95" y1="135.2" x2="175" y2="104.4" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="135.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="104.4" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="135.2" x2="175" y2="104.4" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 4: 5.5% → 76.9%</title><line x1="95" y1="232.2" x2="175" y2="103.6" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="232.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="103.6" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="232.2" x2="175" y2="103.6" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 5: 72.5% → 77.4%</title><line x1="95" y1="111.4" x2="175" y2="102.8" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="111.4" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="102.8" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="111.4" x2="175" y2="102.8" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 6: 63.8% → 65.9%</title><line x1="95" y1="127.2" x2="175" y2="123.3" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="127.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="123.3" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="127.2" x2="175" y2="123.3" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 7: 64.3% → 78.8%</title><line x1="95" y1="126.2" x2="175" y2="100.2" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="126.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="100.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="126.2" x2="175" y2="100.2" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 8: 47.6% → 73.3%</title><line x1="95" y1="156.4" x2="175" y2="110.1" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="95" cy="156.4" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="175" cy="110.1" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="95" y1="156.4" x2="175" y2="110.1" stroke="transparent" stroke-width="10"/></g>
+<g><title>Mean: 52.2% → 74.8%</title><line x1="95" y1="148.1" x2="175" y2="107.4" stroke="#fb4a02" stroke-width="3" stroke-linecap="round"/><circle cx="95" cy="148.1" r="5" fill="#fb4a02" stroke="#fff" stroke-width="2"/><circle cx="175" cy="107.4" r="5" fill="#fb4a02" stroke="#fff" stroke-width="2"/></g>
+<text x="85" y="152.1" text-anchor="end" font-size="12" font-weight="700" fill="#0c0c0c">52%</text>
+<text x="185" y="111.4" text-anchor="start" font-size="12" font-weight="700" fill="#0c0c0c">75%</text>
+<text x="95" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Canonical</text>
+<text x="95" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
+<text x="175" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Varied</text>
+<text x="175" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
+<text x="315.0" y="20" text-anchor="middle" font-size="15" font-weight="700" fill="#0c0c0c">Room 2</text>
+<text x="315.0" y="38" text-anchor="middle" font-size="12" fill="#525252">−5.8 pts · no gain found</text>
+<g><title>Seed 20: 86.9% → 77.7%</title><line x1="275" y1="85.6" x2="355" y2="102.1" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="85.6" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="102.1" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="85.6" x2="355" y2="102.1" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 21: 93.0% → 91.4%</title><line x1="275" y1="74.6" x2="355" y2="77.5" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="74.6" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="77.5" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="74.6" x2="355" y2="77.5" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 22: 86.9% → 91.7%</title><line x1="275" y1="85.5" x2="355" y2="77.0" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="85.5" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="77.0" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="85.5" x2="355" y2="77.0" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 23: 87.1% → 91.1%</title><line x1="275" y1="85.2" x2="355" y2="78.0" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="85.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="78.0" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="85.2" x2="355" y2="78.0" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 24: 84.3% → 86.4%</title><line x1="275" y1="90.2" x2="355" y2="86.5" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="90.2" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="86.5" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="90.2" x2="355" y2="86.5" stroke="transparent" stroke-width="10"/></g>
+<g><title>Seed 25: 82.2% → 47.3%</title><line x1="275" y1="94.0" x2="355" y2="156.9" stroke="#7c7f87" stroke-width="1.5" stroke-opacity=".75"/><circle cx="275" cy="94.0" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="355" cy="156.9" r="3.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="275" y1="94.0" x2="355" y2="156.9" stroke="transparent" stroke-width="10"/></g>
+<g><title>Mean: 86.8% → 80.9%</title><line x1="275" y1="85.8" x2="355" y2="96.3" stroke="#fb4a02" stroke-width="3" stroke-linecap="round"/><circle cx="275" cy="85.8" r="5" fill="#fb4a02" stroke="#fff" stroke-width="2"/><circle cx="355" cy="96.3" r="5" fill="#fb4a02" stroke="#fff" stroke-width="2"/></g>
+<text x="265" y="89.8" text-anchor="end" font-size="12" font-weight="700" fill="#0c0c0c">87%</text>
+<text x="365" y="100.3" text-anchor="start" font-size="12" font-weight="700" fill="#0c0c0c">81%</text>
+<text x="275" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Canonical</text>
+<text x="275" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
+<text x="355" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Varied</text>
+<text x="355" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
+</svg>
+      <figcaption>Each grey line is one training seed; orange is the mean. Success on frozen held-out states. Room 2, on the right, is the replication below.</figcaption>
+    </figure>
+    <p>Varied starts won in all six matched seeds, by 2.2 to 71.4 points, and on all 11 routes. That met every part of the rule declared in advance.</p>
+    <div class="pull">
+      <b>98% &rarr; 60%</b>
+      <p><strong>Why the fixed start isn&rsquo;t enough.</strong> Two policies that scored 98.0% and 98.5% from the fixed start scored 59.7% and 84.6% on an earlier diagnostic set of held-out states. One start can&rsquo;t tell them apart.</p>
+    </div>
+    <p>An earlier version of this comparison, 79.9% against 65.1%, used checkpoints picked after the campaign and a held-out file with duplicated states. I withdrew it and replaced it with the matched analysis above. The old numbers stay in the report as an audit trail.</p>
+
+    <h2 id="room2">Room 2: the replication</h2>
+    <p>The same matched design in Room 2: a clone of seven Room 2 demonstrations, six matched seeds, and 200 held-out states from 12 separately searched routes. The training plan and the evaluation plan were each committed before their data existed.</p>
+    <div class="table-wrap">
+      <table class="results">
+        <thead><tr><th>Held out</th><th class="num">A: fixed</th><th class="num">B: varied</th><th class="num">B &minus; A</th></tr></thead>
+        <tbody>
+          <tr><td>Success, each route weighted equally</td><td class="num">86.8%</td><td class="num">80.9%</td><td class="num"><strong class="neg">&minus;5.8 pts</strong></td></tr>
+          <tr><td>95% interval (seeds and routes resampled)</td><td></td><td></td><td class="num">&minus;18.7 to +3.4</td></tr>
+          <tr><td>Exact paired sign-flip test</td><td></td><td></td><td class="num">p = 0.50</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>The declared rule was not met.</strong> Varied starts helped three seeds and hurt three. One varied-start run, seed 25, collapsed during training and scored 47.3%. It stays in the analysis.</p>
+    <p>What it tells me:</p>
+    <ul>
+      <li><strong>The Room 1 gain doesn&rsquo;t transfer automatically.</strong> Room 2&rsquo;s fixed-start arm already scored 86.8%, which left much less room to improve than Room 1&rsquo;s 52.2%.</li>
+      <li><strong>Collapse isn&rsquo;t specific to varied starts.</strong> A later training-side run repeated arm A with eight new seeds: 5 of 14 fixed-start runs from the same clone collapsed.</li>
+      <li><strong>Both arms fail in the same place.</strong> 93.5% to 99.6% of training deaths land in one stretch: a pit, a spiked block and a spiked gap. Every demonstration crosses it using a spring, and the observation has no channel for springs. Whether that causes the failures is a hypothesis these runs don&rsquo;t test.</li>
+    </ul>
+
+    <h2 id="problems">Engineering problems</h2>
+    <div class="pull warn">
+      <b>8 GB</b>
+      <p><strong>of memory in 4 minutes.</strong> Long runs leaked 2 to 6&nbsp;MB per reset. A memory probe traced it to Everest&rsquo;s dash-trail render targets, which were never freed when a savestate replaced the level. The plugin now releases them before each reset, and memory stays flat.</p>
+    </div>
+    <ul>
+      <li><strong>A seed that wasn&rsquo;t a seed.</strong> Two runs with different seeds produced byte-identical episode logs. Stable-Baselines3&rsquo;s <code>load()</code> re-seeds torch, NumPy and Python globally with the saved checkpoint&rsquo;s seed, after the run has seeded itself, so every run that started from a checkpoint used the donor&rsquo;s random stream. Fixed by re-seeding after loading. The evaluation script got its own <code>--seed</code> for the same reason.</li>
+      <li><strong>A race in the first benchmark.</strong> An early 1,000-step probe timed out because a previous playback&rsquo;s frame number satisfied the new playback&rsquo;s start condition. That&rsquo;s why the real bridge tracks numbered sessions instead of trusting frame numbers.</li>
+      <li><strong>Headless mode.</strong> It crashed in the game&rsquo;s audio library after a savestate. Rather than patch around it, the project kept the normal renderer and made stepping fast instead.</li>
+    </ul>
+
+    <h2 id="learned">What I learned</h2>
+    <div class="lessons">
+      <div>
+        <h3>ML experiments</h3>
+        <ul>
+          <li>One run&rsquo;s success rate means little. The same configuration gave 0% and 98.5%.</li>
+          <li>Measure on states the policy never trained from. The fixed start made a 60% policy look like 98%.</li>
+          <li>Commit the plan and the analysis before the data, then report what it finds. Room 2 is published because the plan said it would be.</li>
+          <li>Check how a result was selected. My own preliminary comparison was post-selected, and I withdrew it.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Systems</h3>
+        <ul>
+          <li>Keep a slow, obviously correct path as the reference for the fast one.</li>
+          <li>Test failure on purpose: drop connections, delay replies, stop reading.</li>
+          <li>Long runs find bugs that short tests can&rsquo;t. The leak only showed over minutes of resets.</li>
+          <li>Pin everything a result depends on, and refuse to run when it drifts.</li>
+        </ul>
+      </div>
+    </div>
+
+  </article>
+
+  <div class="post-end">
+    <a class="repo" href="../#work"><svg class="chev flip"><use href="#chev"/></svg> All work</a>
+    <a class="repo" href="https://github.com/shihaab453/celeste-rl">Code and full reports on GitHub <svg class="chev"><use href="#chev"/></svg></a>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  <a class="brand" href="../"><span class="mark">SA</span>Shihaab Alam</a>
+  <nav>
+    <a href="../#work">Work</a>
+    <a href="../#writing">Writing</a>
+    <a href="https://www.linkedin.com/in/shihaabalam">LinkedIn</a>
+    <a data-mail="shihaabalam|gmail.com" href="#">Email</a>
+    <a href="https://github.com/shihaab453">GitHub</a>
+  </nav>
+  <small>shihaabalam.com</small>
+</footer>
+
+<script src="../assets/site.js"></script>
+
+</body>
+</html>

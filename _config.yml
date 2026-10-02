@@ -1,0 +1,5 @@
+# GitHub Pages build settings. Files listed here stay in the repo but are not
+# published on shihaabalam.com.
+exclude:
+  - README.md
+  - CLAUDE.md

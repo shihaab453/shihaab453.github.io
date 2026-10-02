@@ -10,4 +10,5 @@ Personal website for shihaabalam.com, served by GitHub Pages.
 - Project images in `assets/` have a `.webp` copy that the homepage loads; the `.png`/`.jpg` originals are the
   fallback and the full-size links. Re-export the `.webp` when replacing an image.
 - Visitor counts use GoatCounter (no cookies); the site code is set at the top of `assets/site.js`.
+- `_config.yml` keeps `README.md` and `CLAUDE.md` off the published site.
 - `archive/editorial/` is the previous design, kept for reference and hidden from search engines.

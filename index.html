@@ -11,13 +11,13 @@
 <meta property="og:site_name" content="Shihaab Alam">
 <meta property="og:url" content="https://shihaabalam.com/">
 <meta property="og:title" content="Shihaab Alam">
-<meta property="og:description" content="CS student at Aston University working on ML systems and research engineering. Projects include Celeste RL, a reinforcement learning agent learning to play Celeste.">
-<meta property="og:image" content="https://shihaabalam.com/assets/og-image.jpg">
+<meta property="og:description" content="CS student at Aston University working on ML systems and research engineering. Projects include Celeste RL, continual reinforcement learning research using Celeste.">
+<meta property="og:image"content="https://shihaabalam.com/assets/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Shihaab Alam over a teal and orange smoke background">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="description" content="CS student at Aston University working on ML systems and research engineering. Projects include Celeste RL, a reinforcement learning agent learning to play Celeste.">
+<meta name="description" content="CS student at Aston University working on ML systems and research engineering. Projects include Celeste RL, continual reinforcement learning research using Celeste.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter+Tight:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -74,25 +74,26 @@
   <div class="frame" id="work">
     <div class="intro">
       <p class="intro-text">I&rsquo;m Shihaab. I like building systems, testing ideas properly, and documenting when they don&rsquo;t work.</p>
-      <p class="intro-more">Three projects so far: an agent that learns to play <em>Celeste</em>, a statistical look at every official speedcubing result, and a Windows app for gaming with a controller.</p>
+      <p class="intro-more">Three projects so far: continual learning research with an agent that plays <em>Celeste</em>, a statistical look at every official speedcubing result, and a Windows app for gaming with a controller.</p>
     </div>
 
     <div class="section-intro">
       <h2>Selected work</h2>
     </div>
 
-    <!-- Celeste RL. All numbers come from the repo's README and docs/results.
-         The full story lives on projects/celeste-rl.html. -->
+    <!-- Celeste RL. All numbers come from the repo's README, docs/results and the
+         technical report. The full story lives on projects/celeste-rl.html. -->
     <section class="flagship" aria-labelledby="celeste-title">
       <article class="project">
         <div class="copy">
           <span class="step">#001</span>
           <h3 id="celeste-title">Celeste RL</h3>
-          <p class="hook">Teaching a reinforcement learning agent to play <em>Celeste</em> through the game&rsquo;s real controls.</p>
-          <p>I built a Python environment, with a small C# plugin, that runs the game at about 2,600 frames per second. Then I used it to study PPO, learning from demonstrations, and how well a policy copes with game states it never trained from.</p>
-          <p class="muted">Without demonstrations, PPO never cleared the first room. With seven demonstrations found by a search, training from varied starts beat a fixed start on held-out states. The same design didn&rsquo;t replicate in Room 2, and the write-up says so.</p>
+          <p class="hook">Continual reinforcement learning research using <em>Celeste</em>: how much of one room an agent forgets when it learns the next.</p>
+          <p>I built a Python environment, with a small C# plugin, that runs the game at about 2,600 frames per second through its real controls. On it, I taught an agent Room 1, then Room 2, and measured what it lost along the way.</p>
+          <p class="muted">Under the standard PPO recipe, learning Room 2 cut Room 1 success by 37 to 56 points in every lineage. Two variants lost far less without doing worse on Room 2. The evidence is descriptive, from four lineages, and the technical report says exactly what it can&rsquo;t show.</p>
           <div class="cta-row">
             <a class="btn btn-black" href="projects/celeste-rl.html">Read the case study <svg class="chev"><use href="#chev"/></svg></a>
+            <a class="btn btn-outline" href="https://github.com/shihaab453/celeste-rl/blob/technical-report-v1.0/docs/technical-report.md">Technical report</a>
             <a class="btn btn-outline" href="https://github.com/shihaab453/celeste-rl">GitHub</a>
           </div>
         </div>
@@ -110,7 +111,7 @@
 
       <div class="flag-stats">
         <div><b>2,600 fps</b><span>about 85&times; faster than the existing interface</span></div>
-        <div><b>+22.6 pts</b><span>held-out improvement in Room 1, in 6 of 6 matched seeds</span></div>
+        <div><b>87% &rarr; 6%</b><span>median share of Room 1 skill lost learning Room 2: standard recipe against the donor anchor</span></div>
         <div><b>469</b><span>unit tests, plus live checks against the running game</span></div>
         <div><b>926 / 926</b><span>frames reproduced exactly against normal-speed play</span></div>
       </div>
@@ -122,6 +123,7 @@
           <span class="chip"><b><svg><use href="#tick"/></svg></b>Gymnasium</span>
           <span class="chip"><b><svg><use href="#tick"/></svg></b>C# / .NET</span>
           <span class="chip"><b><svg><use href="#tick"/></svg></b>Reinforcement learning (PPO)</span>
+          <span class="chip"><b><svg><use href="#tick"/></svg></b>Continual learning</span>
           <span class="chip"><b><svg><use href="#tick"/></svg></b>Experimental design and statistics</span>
         </div>
         <div class="meta-row">

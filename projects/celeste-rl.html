@@ -11,12 +11,12 @@
 <meta property="og:site_name" content="Shihaab Alam">
 <meta property="og:url" content="https://shihaabalam.com/projects/celeste-rl.html">
 <meta property="og:title" content="Celeste RL: case study">
-<meta property="og:description" content="Teaching a reinforcement learning agent to play Celeste through the game's real controls: the environment, the experiments, and the results that didn't hold up.">
+<meta property="og:description" content="Continual reinforcement learning research using Celeste: how much of one room an agent forgets while it learns the next, how to measure that honestly, and the environment that made it possible.">
 <meta property="og:image" content="https://shihaabalam.com/assets/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="description" content="Teaching a reinforcement learning agent to play Celeste through the game's real controls: the environment, the experiments, and the results that didn't hold up.">
+<meta name="description" content="Continual reinforcement learning research using Celeste: how much of one room an agent forgets while it learns the next, how to measure that honestly, and the environment that made it possible.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter+Tight:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -56,10 +56,10 @@
   <div class="inner">
     <p class="post-meta"><span class="step">#001</span><span>Case study &middot; 2026, in progress</span></p>
     <h1>Celeste RL</h1>
-    <p class="deck">Teaching a reinforcement learning agent to play <em>Celeste</em> through the game&rsquo;s real controls.</p>
+    <p class="deck">Continual reinforcement learning research using <em>Celeste</em>: how much of one room an agent forgets when it learns the next.</p>
     <div class="ctas">
-      <a class="btn btn-white" href="https://github.com/shihaab453/celeste-rl">GitHub <svg class="chev"><use href="#chev"/></svg></a>
-      <a class="btn btn-ghost" href="https://github.com/shihaab453/celeste-rl/tree/main/docs">Full reports</a>
+      <a class="btn btn-white" href="https://github.com/shihaab453/celeste-rl/blob/technical-report-v1.0/docs/technical-report.md">Technical report <svg class="chev"><use href="#chev"/></svg></a>
+      <a class="btn btn-ghost" href="https://github.com/shihaab453/celeste-rl">GitHub</a>
     </div>
   </div>
 </header>
@@ -67,9 +67,9 @@
 <main>
   <div class="frame">
     <div class="flag-stats cs-stats">
+      <div><b>87% &rarr; 6%</b><span>median share of Room 1 skill lost in Room 2 training: standard recipe against the donor anchor</span></div>
+      <div><b>16 / 16</b><span>variant runs that lost less Room 1 skill than every standard-recipe run</span></div>
       <div><b>2,600 fps</b><span>including resets, about 85&times; the existing interface</span></div>
-      <div><b>+22.6 pts</b><span>held-out improvement in Room 1, 6 of 6 matched seeds</span></div>
-      <div><b>469</b><span>unit tests, plus live checks against the running game</span></div>
       <div><b>926 / 926</b><span>frames identical to normal-speed play on fixed traces</span></div>
     </div>
   </div>
@@ -81,16 +81,15 @@
       <b>On this page</b>
       <ol>
         <li><a href="#overview">Overview</a></li>
-        <li><a href="#bottleneck">The bottleneck</a></li>
-        <li><a href="#environment">Building the environment</a></li>
-        <li><a href="#speed">Making it fast enough</a></li>
-        <li><a href="#correct">Proving it was correct</a></li>
-        <li><a href="#ppo">First PPO experiment</a></li>
-        <li><a href="#why">Why it failed</a></li>
-        <li><a href="#demos">Demonstrations</a></li>
-        <li><a href="#room1">Room 1 held-out result</a></li>
-        <li><a href="#room2">Room 2 replication</a></li>
-        <li><a href="#problems">Engineering problems</a></li>
+        <li><a href="#why-celeste">Why Celeste</a></li>
+        <li><a href="#pipeline">The pipeline</a></li>
+        <li><a href="#measuring">Measuring forgetting</a></li>
+        <li><a href="#where">Where Room 1 skill went</a></li>
+        <li><a href="#variants">Two recipes that forgot less</a></li>
+        <li><a href="#measurement">When the measurement changes the answer</a></li>
+        <li><a href="#limits">What it doesn&rsquo;t show</a></li>
+        <li><a href="#learning">How the agent learned the rooms</a></li>
+        <li><a href="#environment">The environment underneath</a></li>
         <li><a href="#learned">What I learned</a></li>
       </ol>
     </nav>
@@ -99,103 +98,169 @@
   <article class="prose">
 
     <h2 id="overview" style="margin-top:0">Overview</h2>
-    <p class="standfirst">Celeste RL trains an agent to play <em>Celeste</em> from the game&rsquo;s state, pressing only the buttons in its controls menu, on unmodified game physics.</p>
-    <p>Most of it is Python: a Gymnasium environment, PPO training with Stable-Baselines3 and PyTorch, and experiments whose plans and analyses are committed before the data exists. A small C# plugin for the game&rsquo;s mod loader lets <em>Celeste</em> step as fast as the agent can act.</p>
-    <p>The hard part came before any learning. The existing tools ran at about 30 steps a second, and nobody had checked them for the kind of exactness RL needs. Once the environment was fast and verified, the results were mixed, and they&rsquo;re all reported. Without demonstrations, PPO never cleared Room 1. With seven demonstrations found by a search, training from varied starts beat a fixed start by 22.6 points on held-out states. That did not replicate in Room 2.</p>
-    <p class="scope">Scope so far: Chapter 1 has 20 rooms. Rooms 1 and 2 have been attempted. Neither has reached the project&rsquo;s 99% held-out reliability target.</p>
+    <p class="standfirst">Celeste RL is continual reinforcement learning research with <em>Celeste</em> as the testbed. When an agent that has learned one room is trained on the next, how much of the first does it lose, and how should that loss be measured?</p>
+    <p>The agent reads the game&rsquo;s state and presses only the buttons in its controls menu, on unmodified game physics. Most of the project is Python: a Gymnasium environment, PPO training with Stable-Baselines3 and PyTorch, and experiments whose plans are committed before the data exists. A small C# plugin lets the game step as fast as the agent can act.</p>
+    <p>The main result: a policy that had learned Room 1 was taught Room 2, first by imitation and then with PPO. The imitation step cost 12 to 14 points of Room 1 success. Under the standard PPO recipe, Room 2 training then cut a further 37 to 56 points, in all four lineages. Two variants, one without PPO&rsquo;s entropy bonus and one anchored to the original Room 1 behaviour, lost far less, and their median Room 2 results were not worse.</p>
+    <p class="scope">Scope: four lineages from one starting network, two rooms, one game. The comparisons with the standard recipe are descriptive, not controlled, and the <a href="https://github.com/shihaab453/celeste-rl/blob/technical-report-v1.0/docs/technical-report.md">technical report</a> is explicit about what they can&rsquo;t show.</p>
 
-    <h2 id="bottleneck">The bottleneck</h2>
-    <p><em>Celeste</em> runs at 60 frames per second. Its community automation tool, CelesteTAS, plays inputs back from a file and reports the game&rsquo;s state over a local HTTP interface, but it has no endpoint that accepts inputs. So my first bridge appends one input line per step to the file CelesteTAS is playing, then waits for the game to reach that frame. The file always ends at the paused frame, so an input can never land on the wrong frame or play twice.</p>
-    <p>That bridge is exact, but it&rsquo;s tied to the game&rsquo;s clock. Over 1,000 measured steps, one frame advance took 32.6&nbsp;ms on average: about 30 steps a second. The first PPO experiment used two million transitions per seed. At 30 a second, that&rsquo;s about 18 hours of collection for one seed, before any learning.</p>
-    <p>Running the game headless didn&rsquo;t help. With the mods this setup needs, it crashed in the audio library after a savestate, so the project kept the normal renderer.</p>
+    <h2 id="why-celeste">Why Celeste</h2>
+    <p>Neural network policies tend to lose old skills when they&rsquo;re trained on new ones. The field calls it catastrophic forgetting. It&rsquo;s easy to talk about and hard to measure cleanly, and <em>Celeste</em>&rsquo;s first two rooms make a small, honest test:</p>
+    <ul>
+      <li><strong>Distinct tasks.</strong> Each room has its own layout and a clear success criterion: leave the room.</li>
+      <li><strong>Shared controls and observations.</strong> The same network can play both rooms, so Room 2 training can interfere with Room 1.</li>
+      <li><strong>Deterministic.</strong> Room 1 skill can be scored on exactly the same 200 start states at every stage of training.</li>
+      <li><strong>Fast.</strong> The environment I built steps at about 2,600 frames a second, so each stage can be measured, not guessed.</li>
+    </ul>
 
-    <h2 id="environment">Building the environment</h2>
-    <p>The game runs in an isolated copy with three community tools: Everest (the mod loader), CelesteTAS (frame-exact input playback) and Speedrun Tool (savestates). From the agent down to the game:</p>
+    <h2 id="pipeline">The pipeline</h2>
+    <p>Every measurement refers to one stage of this pipeline:</p>
     <ol class="pipe">
-      <li><span class="lang">Python</span><span class="name">PPO policy</span><span class="what">PyTorch and Stable-Baselines3, with a small CNN over the room grid.</span></li>
-      <li><span class="lang">Python</span><span class="name">Gymnasium environment</span><span class="what">Builds observations, computes reward and classifies how each episode ended.</span></li>
-      <li><span class="lang">Python</span><span class="name">Lockstep client</span><span class="what">The same <code>reset()</code> and <code>step()</code> as the slow reference bridge, over a local socket.</span></li>
-      <li><span class="lang">C#</span><span class="name">Lockstep plugin</span><span class="what">Hooks CelesteTAS&rsquo;s playback loop and replies with the new state after every frame.</span></li>
-      <li><span class="lang">Game</span><span class="name"><em>Celeste</em> with Everest</span><span class="what">The normal update with the normal frame length. Physics are never modified.</span></li>
+      <li><span class="lang">Imitation</span><span class="name">Room 1 clone</span><span class="what">One behaviour-cloning network, fitted on five clears of Room 1 found by an automated search. No human play.</span></li>
+      <li><span class="lang">PPO</span><span class="name">Donor</span><span class="what">A 500k-step PPO fine-tune of the clone on Room 1, from varied starts. Four donors, one per training seed, start the four lineages.</span></li>
+      <li><span class="lang">Imitation</span><span class="name">Mixed copy</span><span class="what">A network fitted from the donor&rsquo;s weights to imitate the donor&rsquo;s own Room 1 behaviour and the Room 2 demonstrations at the same time.</span></li>
+      <li><span class="lang">PPO</span><span class="name">Room 2 training</span><span class="what">500k steps of PPO on Room 2 from the copy, under three recipes: standard, no entropy bonus (E0), and an anchor to the donor&rsquo;s Room 1 button probabilities (A1).</span></li>
+      <li><span class="lang">Result</span><span class="name">Final policy</span><span class="what">Scored on Room 1&rsquo;s 200 frozen starts, and on Room 2.</span></li>
     </ol>
-    <ul>
-      <li><strong>Stepping.</strong> When every queued input has been played, the plugin sends the state to Python and waits for the next input instead of the next 60&nbsp;Hz tick. Only the waiting changes.</li>
-      <li><strong>Actions.</strong> 24 on/off inputs matching the game&rsquo;s controls menu, with pause, quick restart and journal disabled. Inputs are validated in both Python and the plugin, so no TAS command can be injected.</li>
-      <li><strong>Observations.</strong> Game state, not pixels: the player&rsquo;s position, speed, dashes, stamina, timers and movement state for the last four decisions; an 11-channel, 32&nbsp;&times;&nbsp;32 grid of tiles, spikes and hazards around the player; and the last four actions.</li>
-      <li><strong>Resets.</strong> A savestate taken one frame before the episode start restores in about 4&nbsp;ms. If an input starts a loading scene, the plugin waits for loading to finish, so every observation is a frame the agent can act on.</li>
-      <li><strong>Sessions.</strong> Each connection belongs to a numbered session. Replies only go to the connection that sent the command, and every pending command has a deadline. Any timeout or malformed reply ends the session, and recovery always goes through a full reset.</li>
-      <li><strong>Provenance.</strong> Every training run records its commit, the game build&rsquo;s file hashes and the observation schema version, and refuses to start if any of them drifts.</li>
-    </ul>
+    <p>All four donors descend from the same clone, so the independent sample size is four lineages, however many episodes sit behind each score. Repeated runs on one copy add precision, not independence.</p>
 
-    <h2 id="speed">Making it fast enough for RL</h2>
+    <h2 id="measuring">Measuring forgetting</h2>
+    <p>Room 1 skill is scored as route-macro success: 200 frozen start states on 11 routes, one episode per start, with each route weighted equally so a heavily sampled route can&rsquo;t dominate.</p>
+    <p>A raw drop in points is hard to compare between lineages that started at different levels, so losses are also expressed as a share of the donor&rsquo;s margin over a reference: the mean Room 1 score of policies that never saw Room 1. A loss of 0.25 means a quarter of that margin was lost, not 25 points.</p>
     <div class="pull">
-      <b>~85&times;</b>
-      <p><strong>About 2,600 frames per second, resets included</strong>, up from about 30 per second through CelesteTAS&rsquo;s HTTP interface.</p>
+      <b>14.2%</b>
+      <p><strong>is not zero.</strong> Policies trained only on Room 2 still clear some Room 1 starts, because the rooms share skills. So the reference is a reference value, not a floor, and a policy can finish below it.</p>
     </div>
-    <p>That speed is what made the experiments possible. The first PPO experiment ran three seeds of two million transitions, about six million in total, in about 6.3 hours on one laptop with the game minimised alongside. Each seed ran as one uninterrupted session with zero bridge faults and zero game relaunches. At the old speed, collection alone would have taken over two days.</p>
-    <p>Training ran at 421 to 487 steps per second, well below 2,600. The game stopped being the bottleneck; the policy and the PPO updates took most of the time.</p>
 
-    <h2 id="correct">Proving the environment was correct</h2>
-    <p>In RL, a subtly wrong environment usually doesn&rsquo;t crash. It teaches the agent something false, and the results look plausible. So the slow file-based bridge stayed in the project as the reference, and the fast one had to match it.</p>
-    <div class="table-wrap">
-      <table class="ledger">
-        <thead><tr><th>Check</th><th>How</th><th>Result</th></tr></thead>
-        <tbody>
-          <tr><td>Frame fidelity</td><td>Fixed input traces played four ways: reference bridge, lockstep bridge, lockstep with 5, 50 and 500&nbsp;ms client delays, and plain TAS playback at normal speed. Traces cover a room transition with 7 dashes, spike deaths and respawns, and a pause-menu loading scene.</td><td>926 / 926 frames identical</td></tr>
-          <tr><td>Long runs</td><td>A 30-minute soak with periodic replay checks.</td><td>4,853,400 steps, 16,178 episodes, 808 / 808 replays identical, no errors</td></tr>
-          <tr><td>Fault handling</td><td>Misbehaving on purpose against the running game: stepping before reset, wrong start frames, replacing the connection mid-reset, disconnecting mid-step, and a client that stops reading replies.</td><td>13 / 13 live fault checks, including 100 rounds of replacing a connection mid-reset</td></tr>
-          <tr><td>Inputs</td><td>Every binding checked in the game, including both jump and dash keys, crouch dash, grab, and pause-menu confirm and cancel.</td><td>30 / 30 checks</td></tr>
-          <tr><td>Memory</td><td>A probe that isolates memory over long runs of resets.</td><td>Found a leak, fixed; memory now flat (<a href="#problems">below</a>)</td></tr>
-          <tr><td>Code</td><td>Unit tests, plus live checks against the game.</td><td>469 unit tests</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>Complete game state matches the reference bridge frame by frame. Against normal-speed playback, position, speed, movement state, room and timer match on all 926 frames.</p>
-
-    <h2 id="ppo">First PPO experiment: no demonstrations</h2>
-    <p>Before any training, the project committed to trying Room 1 without demonstrations first, on a fixed budget, so the result would be reported whichever way it went. Three seeds of PPO, two million transitions each. The reward was +1 for reaching Room 2, &minus;1 for any failure and a tiny cost per frame, with no shaping.</p>
-    <div class="pull">
-      <b>0 clears</b>
-      <p><strong>in 50,369 training episodes</strong> across three seeds and six million transitions. Every training episode ended in death.</p>
-    </div>
-    <p>The agent didn&rsquo;t get further into the room either. Replaying saved checkpoints, the median furthest position was x&nbsp;76 at every point in training, the same as an untrained network of the same shape. The typical episode walked right, fell into the first pit and died on the spikes. No sampled episode passed x&nbsp;144 of the 261 needed.</p>
-
-    <h2 id="why">Why it failed</h2>
-    <ul>
-      <li><strong>The policy never left random play.</strong> Its entropy stayed within 7% of the maximum on every seed, close to pressing each button on a coin flip.</li>
-      <li><strong>The critic learned only that everything fails.</strong> The value estimate converged to almost exactly &minus;1.00, the return of an immediate failure.</li>
-      <li><strong>It wasn&rsquo;t capacity.</strong> Fitting the same network to a recorded clear reached 99.87% per-input accuracy, so the network and observation can represent a solution.</li>
-    </ul>
-    <p>A day later, an addendum to the report named three things the original had left out. The biggest is the action space: 24 independent on/off inputs that start at probability 0.5 mean a fresh policy holds about twelve buttons every frame, against 2.31 in a recorded clear, and the entropy bonus keeps it there. A second reward with distance shaping was inert too. From the fixed start, every failing episode returned the same value to six decimal places, so the shaping cancelled out of the learning signal. The same configuration without demonstrations scored 0 of 250.</p>
-
-    <h2 id="demos">Demonstrations</h2>
-    <p>The next step was to show the agent solutions, without anyone playing the game. A Go-Explore-style search, which replays savestates and reads the room&rsquo;s tile map, found seven complete clears of Room 1 in 20 to 77 seconds each. They differ in length by 50% and in 6 of 7 openings, so they&rsquo;re genuinely different routes.</p>
-    <p>Behavioural cloning on five of them, with two whole routes held out, gave a policy that cleared the room 3 times in 50. On the held-out routes it was worse than simply repeating its own last action: 39.7% of frames exactly right, against 85.5%. It hadn&rsquo;t learned the room. What it gave PPO was a starting point where successes sometimes happened.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Approach</th><th class="num">Success from the fixed start</th></tr></thead>
-        <tbody>
-          <tr><td>PPO only, either reward</td><td class="num">0%</td></tr>
-          <tr><td>Cloning only</td><td class="num">6% (3 of 50)</td></tr>
-          <tr><td>Cloning then PPO, first four runs</td><td class="num">82.5%, 98.0%, 98.5%, 0%</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>The last row is the important one. Three runs worked and one stood still for 400,000 transitions, from the same clone and configuration at a different point in the random stream. At that variance, a success rate from one run means very little, so the next experiment used matched seeds and many runs.</p>
-
-    <h2 id="room1">Room 1: the held-out experiment</h2>
-    <p>The question: does fine-tuning from varied starting states generalise better than fine-tuning from the fixed start? Twelve runs from the same clone were declared before training. Arm A trained from the fixed start. Arm B trained from varied starts, sampled from states the agent had already reached. Seeds 3 to 8 were matched across arms.</p>
-    <p><strong>Held-out evaluation:</strong> 200 frozen states from 11 routes found by separate searches. The evaluation and analysis plan was committed, with its hash, before any checkpoint touched them. Each route counts equally, and the confidence interval resamples whole seeds and whole routes, because neighbouring states on one route aren&rsquo;t independent.</p>
+    <h2 id="where">Where Room 1 skill went</h2>
+    <p>Room 1 success at each stage, by lineage. E0 and A1 ran twice on each copy.</p>
     <div class="table-wrap">
       <table class="results">
-        <thead><tr><th>Held out</th><th class="num">A: fixed</th><th class="num">B: varied</th><th class="num">B &minus; A</th></tr></thead>
+        <thead><tr><th>Lineage</th><th class="num">Donor</th><th class="num">Copy</th><th class="num">Standard final</th><th class="num">E0 finals</th><th class="num">A1 finals</th></tr></thead>
         <tbody>
-          <tr><td>Success, each route weighted equally</td><td class="num">52.2%</td><td class="num">74.8%</td><td class="num"><strong>+22.6 pts</strong></td></tr>
-          <tr><td>95% interval (seeds and routes resampled)</td><td></td><td></td><td class="num">+6.7 to +43.5</td></tr>
-          <tr><td>Exact paired sign-flip test</td><td></td><td></td><td class="num">p = 0.031</td></tr>
+          <tr><td>3</td><td class="num">76.4%</td><td class="num">64.5%</td><td class="num">8.1%</td><td class="num">57.2%, 53.3%</td><td class="num">57.9%, 61.2%</td></tr>
+          <tr><td>4</td><td class="num">76.9%</td><td class="num">62.7%</td><td class="num">25.9%</td><td class="num">43.5%, 45.6%</td><td class="num">61.3%, 58.6%</td></tr>
+          <tr><td>5</td><td class="num">77.4%</td><td class="num">63.6%</td><td class="num">7.5%</td><td class="num">63.0%, 58.3%</td><td class="num">58.1%, 61.9%</td></tr>
+          <tr><td>6</td><td class="num">65.9%</td><td class="num">51.6%</td><td class="num">7.5%</td><td class="num">32.9%, 42.6%</td><td class="num">48.6%, 45.9%</td></tr>
         </tbody>
       </table>
     </div>
+    <p>Two stages lost Room 1 skill:</p>
+    <ul>
+      <li><strong>The mixed copy, before any Room 2 PPO.</strong> Copies scored 12 to 14 points below their donors. That step also imitates Room 2, so it can&rsquo;t be called a copying loss: it mixes imitation error with interference from the new room.</li>
+      <li><strong>Room 2 PPO, under the standard recipe.</strong> A further 37 to 56 points, in every lineage. Three of the four finals scored slightly below the weakest measured policy that had never seen Room 1.</li>
+    </ul>
+    <p>The standard recipe still learned Room 2: its finals cleared the normal Room 2 start in 35 to 46 of 50 episodes. It just paid for it with Room 1.</p>
+    <figure class="chart-fig">
+<svg class="chart" viewBox="0 0 600 300" role="img" aria-labelledby="fg-title fg-desc">
+<title id="fg-title">Room 1 success before and after Room 2 training, by recipe</title>
+<desc id="fg-desc">Median Room 1 success fell from 63.1% at the copy to 7.8% under the standard recipe, to 49.4% without the entropy bonus and to 58.4% with the donor anchor. The mean of policies that never saw Room 1 is 14.2%.</desc>
+<line x1="44" x2="596" y1="242.0" y2="242.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="0" y="247.0" font-size="14" fill="#525252" font-family="Geist Mono, monospace">0%</text>
+<line x1="44" x2="596" y1="152.0" y2="152.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="0" y="157.0" font-size="14" fill="#525252" font-family="Geist Mono, monospace">50%</text>
+<line x1="44" x2="596" y1="62.0" y2="62.0" stroke="#e7e8ec" stroke-width="1"/>
+<text x="0" y="67.0" font-size="14" fill="#525252" font-family="Geist Mono, monospace">100%</text>
+<line x1="58.0" x2="215.3" y1="216.4" y2="216.4" stroke="#7c7f87" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="136.0" y="20" text-anchor="middle" font-size="17" font-weight="700" fill="#0c0c0c">Standard recipe</text>
+<text x="136.0" y="42" text-anchor="middle" font-size="15" fill="#525252">median loss 0.87</text>
+<g><title>Lineage 3: 64.5% → 8.1%</title><line x1="94.0" y1="126.0" x2="178.0" y2="227.5" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="94.0" cy="126.0" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="178.0" cy="227.5" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="94.0" y1="126.0" x2="178.0" y2="227.5" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 4: 62.6% → 25.9%</title><line x1="94.0" y1="129.2" x2="178.0" y2="195.4" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="94.0" cy="129.2" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="178.0" cy="195.4" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="94.0" y1="129.2" x2="178.0" y2="195.4" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 5: 63.6% → 7.5%</title><line x1="94.0" y1="127.6" x2="178.0" y2="228.6" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="94.0" cy="127.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="178.0" cy="228.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="94.0" y1="127.6" x2="178.0" y2="228.6" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 6: 51.6% → 7.5%</title><line x1="94.0" y1="149.1" x2="178.0" y2="228.5" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="94.0" cy="149.1" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="178.0" cy="228.5" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="94.0" y1="149.1" x2="178.0" y2="228.5" stroke="transparent" stroke-width="10"/></g>
+<g><title>Median: 63.1% → 7.8%</title><line x1="94.0" y1="128.4" x2="178.0" y2="228.0" stroke="#fb4a02" stroke-width="4" stroke-linecap="round"/><circle cx="94.0" cy="128.4" r="6.5" fill="#fb4a02" stroke="#fff" stroke-width="2"/><circle cx="178.0" cy="228.0" r="6.5" fill="#fb4a02" stroke="#fff" stroke-width="2"/></g>
+<text x="83.0" y="134.4" text-anchor="end" font-size="16" font-weight="700" fill="#0c0c0c">63%</text>
+<text x="189.0" y="234.0" text-anchor="start" font-size="16" font-weight="700" fill="#0c0c0c">8%</text>
+<text x="94.0" y="268" text-anchor="middle" font-size="15" fill="#0c0c0c">Copy</text>
+<text x="178.0" y="268" text-anchor="middle" font-size="15" fill="#0c0c0c">After</text>
+<text x="178.0" y="286" text-anchor="middle" font-size="13" fill="#525252">Room 2 PPO</text>
+<line x1="243.3" x2="400.7" y1="216.4" y2="216.4" stroke="#7c7f87" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="321.3" y="20" text-anchor="middle" font-size="17" font-weight="700" fill="#0c0c0c">No entropy (E0)</text>
+<text x="321.3" y="42" text-anchor="middle" font-size="15" fill="#525252">median loss 0.18</text>
+<g><title>Lineage 3: 64.5% → 57.2%</title><line x1="279.3" y1="126.0" x2="363.3" y2="139.0" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="279.3" cy="126.0" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="363.3" cy="139.0" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="279.3" y1="126.0" x2="363.3" y2="139.0" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 3: 64.5% → 53.2%</title><line x1="279.3" y1="126.0" x2="363.3" y2="146.2" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="279.3" cy="126.0" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="363.3" cy="146.2" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="279.3" y1="126.0" x2="363.3" y2="146.2" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 4: 62.6% → 43.5%</title><line x1="279.3" y1="129.2" x2="363.3" y2="163.6" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="279.3" cy="129.2" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="363.3" cy="163.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="279.3" y1="129.2" x2="363.3" y2="163.6" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 4: 62.6% → 45.6%</title><line x1="279.3" y1="129.2" x2="363.3" y2="159.8" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="279.3" cy="129.2" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="363.3" cy="159.8" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="279.3" y1="129.2" x2="363.3" y2="159.8" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 5: 63.6% → 62.9%</title><line x1="279.3" y1="127.6" x2="363.3" y2="128.7" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="279.3" cy="127.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="363.3" cy="128.7" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="279.3" y1="127.6" x2="363.3" y2="128.7" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 5: 63.6% → 58.3%</title><line x1="279.3" y1="127.6" x2="363.3" y2="137.1" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="279.3" cy="127.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="363.3" cy="137.1" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="279.3" y1="127.6" x2="363.3" y2="137.1" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 6: 51.6% → 32.9%</title><line x1="279.3" y1="149.1" x2="363.3" y2="182.9" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="279.3" cy="149.1" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="363.3" cy="182.9" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="279.3" y1="149.1" x2="363.3" y2="182.9" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 6: 51.6% → 42.6%</title><line x1="279.3" y1="149.1" x2="363.3" y2="165.3" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="279.3" cy="149.1" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="363.3" cy="165.3" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="279.3" y1="149.1" x2="363.3" y2="165.3" stroke="transparent" stroke-width="10"/></g>
+<g><title>Median: 63.1% → 49.4%</title><line x1="279.3" y1="128.4" x2="363.3" y2="153.0" stroke="#fb4a02" stroke-width="4" stroke-linecap="round"/><circle cx="279.3" cy="128.4" r="6.5" fill="#fb4a02" stroke="#fff" stroke-width="2"/><circle cx="363.3" cy="153.0" r="6.5" fill="#fb4a02" stroke="#fff" stroke-width="2"/></g>
+<text x="268.3" y="134.4" text-anchor="end" font-size="16" font-weight="700" fill="#0c0c0c">63%</text>
+<text x="374.3" y="159.0" text-anchor="start" font-size="16" font-weight="700" fill="#0c0c0c">49%</text>
+<text x="279.3" y="268" text-anchor="middle" font-size="15" fill="#0c0c0c">Copy</text>
+<text x="363.3" y="268" text-anchor="middle" font-size="15" fill="#0c0c0c">After</text>
+<text x="363.3" y="286" text-anchor="middle" font-size="13" fill="#525252">Room 2 PPO</text>
+<line x1="428.7" x2="586.0" y1="216.4" y2="216.4" stroke="#7c7f87" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="506.7" y="20" text-anchor="middle" font-size="17" font-weight="700" fill="#0c0c0c">Donor anchor (A1)</text>
+<text x="506.7" y="42" text-anchor="middle" font-size="15" fill="#525252">median loss 0.06</text>
+<g><title>Lineage 3: 64.5% → 57.9%</title><line x1="464.7" y1="126.0" x2="548.7" y2="137.9" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="464.7" cy="126.0" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="548.7" cy="137.9" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="464.7" y1="126.0" x2="548.7" y2="137.9" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 3: 64.5% → 61.2%</title><line x1="464.7" y1="126.0" x2="548.7" y2="131.9" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="464.7" cy="126.0" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="548.7" cy="131.9" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="464.7" y1="126.0" x2="548.7" y2="131.9" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 4: 62.6% → 61.3%</title><line x1="464.7" y1="129.2" x2="548.7" y2="131.6" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="464.7" cy="129.2" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="548.7" cy="131.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="464.7" y1="129.2" x2="548.7" y2="131.6" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 4: 62.6% → 58.6%</title><line x1="464.7" y1="129.2" x2="548.7" y2="136.6" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="464.7" cy="129.2" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="548.7" cy="136.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="464.7" y1="129.2" x2="548.7" y2="136.6" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 5: 63.6% → 58.1%</title><line x1="464.7" y1="127.6" x2="548.7" y2="137.3" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="464.7" cy="127.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="548.7" cy="137.3" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="464.7" y1="127.6" x2="548.7" y2="137.3" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 5: 63.6% → 61.9%</title><line x1="464.7" y1="127.6" x2="548.7" y2="130.6" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="464.7" cy="127.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="548.7" cy="130.6" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="464.7" y1="127.6" x2="548.7" y2="130.6" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 6: 51.6% → 48.6%</title><line x1="464.7" y1="149.1" x2="548.7" y2="154.5" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="464.7" cy="149.1" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="548.7" cy="154.5" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="464.7" y1="149.1" x2="548.7" y2="154.5" stroke="transparent" stroke-width="10"/></g>
+<g><title>Lineage 6: 51.6% → 45.9%</title><line x1="464.7" y1="149.1" x2="548.7" y2="159.4" stroke="#7c7f87" stroke-width="2" stroke-opacity=".75"/><circle cx="464.7" cy="149.1" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><circle cx="548.7" cy="159.4" r="4.5" fill="#7c7f87" stroke="#fff" stroke-width="1.5"/><line x1="464.7" y1="149.1" x2="548.7" y2="159.4" stroke="transparent" stroke-width="10"/></g>
+<g><title>Median: 63.1% → 58.4%</title><line x1="464.7" y1="128.4" x2="548.7" y2="137.0" stroke="#fb4a02" stroke-width="4" stroke-linecap="round"/><circle cx="464.7" cy="128.4" r="6.5" fill="#fb4a02" stroke="#fff" stroke-width="2"/><circle cx="548.7" cy="137.0" r="6.5" fill="#fb4a02" stroke="#fff" stroke-width="2"/></g>
+<text x="453.7" y="134.4" text-anchor="end" font-size="16" font-weight="700" fill="#0c0c0c">63%</text>
+<text x="559.7" y="143.0" text-anchor="start" font-size="16" font-weight="700" fill="#0c0c0c">58%</text>
+<text x="464.7" y="268" text-anchor="middle" font-size="15" fill="#0c0c0c">Copy</text>
+<text x="548.7" y="268" text-anchor="middle" font-size="15" fill="#0c0c0c">After</text>
+<text x="548.7" y="286" text-anchor="middle" font-size="13" fill="#525252">Room 2 PPO</text>
+</svg>
+      <figcaption>Room 1 success at the copy and after Room 2 training. Each grey line is one run; orange joins the medians. The dashed line is the 14.2% mean of policies that never saw Room 1. Standard: one run per lineage. E0 and A1: two runs per lineage, on the same copies.</figcaption>
+    </figure>
+
+    <h2 id="variants">Two recipes that forgot less</h2>
+    <div class="pull">
+      <b>16 / 16</b>
+      <p><strong>E0 and A1 runs lost less than every standard-recipe run.</strong> The largest loss in any of their 16 runs, 0.36 of the donor&rsquo;s margin, was below the smallest standard-recipe loss, 0.59.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="results">
+        <thead><tr><th>Median across runs</th><th class="num">Standard (4)</th><th class="num">E0 (8)</th><th class="num">A1 (8)</th></tr></thead>
+        <tbody>
+          <tr><td>Share of Room 1 margin lost in Room 2 PPO</td><td class="num"><strong class="neg">0.87</strong></td><td class="num">0.18</td><td class="num"><strong>0.06</strong></td></tr>
+          <tr><td>Room 2 clears from the normal start, of 50</td><td class="num">42.5</td><td class="num">49</td><td class="num">48</td></tr>
+          <tr><td>Room 2 route-macro success</td><td class="num">80.6%</td><td class="num">86.2%</td><td class="num">84.7%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Run by run, Room 2 is more mixed: 4 of the 16 E0 and A1 runs scored below their own lineage&rsquo;s standard run on the Room 2 start set, by 0.6 to 8.9 points. So the data don&rsquo;t show a Room 2 cost, and they don&rsquo;t show a benefit either.</p>
+    <ul>
+      <li><strong>Why these are descriptive.</strong> The standard runs came from an earlier campaign that ran one at a time; the variants ran later, three at a time. There is one standard run per lineage. It&rsquo;s a comparison worth following up, not a measured effect.</li>
+      <li><strong>Why they lose less is open.</strong> Removing the entropy bonus also changes which Room 2 states the policy visits. The anchor trains on recorded donor play, so rehearsal and retention are tangled together.</li>
+      <li><strong>Not a new algorithm.</strong> A1 closely resembles behaviour-cloning replay methods such as CLEAR (Rolnick et al. 2019), and FLaRe (Hu et al. 2025) has reported entropy bonuses damaging pretrained policies during fine-tuning. The contribution is the measurement, not the method.</li>
+    </ul>
+
+    <h2 id="measurement">When the measurement changes the answer</h2>
+    <p>The other half of the report is about measurement. Three choices changed what the same data seemed to say:</p>
+    <ul>
+      <li><strong>The baseline checkpoint.</strong> Counted from the copy, as declared, A1&rsquo;s median loss is 0.06. Counted from the donor, it&rsquo;s 0.30, because every arm inherits the copy step&rsquo;s loss. Both are legitimate, so a retention number has to say which one it is.</li>
+      <li><strong>The start distribution.</strong> Two policies that scored 98.0% and 98.5% from Room 1&rsquo;s normal start scored 59.7% and 84.6% across varied held-out starts. In a deterministic game, a fixed start can reward a memorised path.</li>
+      <li><strong>Subgroups and their baselines.</strong> Split by whether starts were near states the copy was trained on, A1 beat E0 by 9.3 points near and 0.8 far, which reads as &ldquo;the anchor only protects rehearsed states&rdquo;. But E0 barely lost anything far from them either (3.2 points), so there was almost nothing left to protect. The data can&rsquo;t tell those stories apart.</li>
+    </ul>
+    <div class="pull">
+      <b>4 rules</b>
+      <p><strong>for reporting retention in this pipeline:</strong> give raw scores before normalised losses; name the starting checkpoint and the denominator; name the start set and the independent unit; and don&rsquo;t turn a stage label into a mechanism.</p>
+    </div>
+
+    <h2 id="limits">What it doesn&rsquo;t show</h2>
+    <ul>
+      <li><strong>Why forgetting happens here.</strong> The retained training records can&rsquo;t reconstruct the PPO updates needed to attribute it.</li>
+      <li><strong>Anything beyond this pipeline.</strong> Four lineages share one clone and one demonstration set, with one copy fit per donor. No claim extends to other recipes, rooms or games.</li>
+      <li><strong>A confirmatory result.</strong> The same Room 1 start set carried several analyses, some chosen after earlier ones were seen. No fresh study was run.</li>
+    </ul>
+    <p>What would settle it: independent lineages beyond one clone, more than one copy per donor, an exposure measure defined along trajectories, standard and variant runs in the same campaign, and update-level records of PPO training.</p>
+
+    <h2 id="learning">How the agent learned the rooms</h2>
+    <p>Forgetting can only be studied once there&rsquo;s something to forget. Getting there took three experiments, and the first one failed.</p>
+    <div class="pull">
+      <b>0 clears</b>
+      <p><strong>in 50,369 training episodes</strong> of PPO without demonstrations, across three seeds and six million transitions. The policy never left near-random play: 24 independent on/off buttons that start at a coin flip mean a fresh policy holds about twelve at once, against 2.31 in a real clear.</p>
+    </div>
+    <p>A Go-Explore-style search, which replays savestates and reads the room&rsquo;s tile map, then found seven complete clears of Room 1 with no human play. Behavioural cloning on five of them, followed by PPO, cleared the room. But four runs from the same clone and settings scored 82.5%, 98.0%, 98.5% and 0%, so single runs meant little, and every later experiment used matched seeds.</p>
+    <p>Next, a predeclared comparison: fine-tune from the fixed start, or from varied starts? On 200 frozen held-out states from 11 routes, varied starts won by <strong>22.6 points</strong> (52.2% to 74.8%, 95% interval +6.7 to +43.5, exact p = 0.031), in all six matched seeds.</p>
     <figure class="chart-fig">
 <svg class="chart" viewBox="0 0 400 300" role="img" aria-labelledby="cr-title cr-desc">
 <title id="cr-title">Held-out success by training seed, canonical versus varied starts</title>
@@ -237,55 +302,55 @@
 <text x="355" y="266" text-anchor="middle" font-size="12" fill="#0c0c0c">Varied</text>
 <text x="355" y="281" text-anchor="middle" font-size="11" fill="#525252">starts</text>
 </svg>
-      <figcaption>Each grey line is one training seed; orange is the mean. Success on frozen held-out states. Room 2, on the right, is the replication below.</figcaption>
+      <figcaption>Each grey line is one training seed; orange is the mean. Success on frozen held-out states.</figcaption>
     </figure>
-    <p>Varied starts won in all six matched seeds, by 2.2 to 71.4 points, and on all 11 routes. That met every part of the rule declared in advance.</p>
-    <div class="pull">
-      <b>98% &rarr; 60%</b>
-      <p><strong>Why the fixed start isn&rsquo;t enough.</strong> Two policies that scored 98.0% and 98.5% from the fixed start scored 59.7% and 84.6% on an earlier diagnostic set of held-out states. One start can&rsquo;t tell them apart.</p>
-    </div>
-    <p>An earlier version of this comparison, 79.9% against 65.1%, used checkpoints picked after the campaign and a held-out file with duplicated states. I withdrew it and replaced it with the matched analysis above. The old numbers stay in the report as an audit trail.</p>
+    <p>The same design in Room 2 didn&rsquo;t replicate: &minus;5.8 points (interval &minus;18.7 to +3.4, p = 0.50). Varied starts helped three seeds and hurt three, and training collapse turned out to hit fixed-start runs too (5 of 14). Both results are published because the plans said they would be. An earlier, post-selected version of the Room 1 comparison was withdrawn and replaced, and its numbers stay in the report as an audit trail.</p>
+    <p>The varied-start Room 1 policies from seeds 3 to 6 became the four donors for the forgetting study.</p>
 
-    <h2 id="room2">Room 2: the replication</h2>
-    <p>The same matched design in Room 2: a clone of seven Room 2 demonstrations, six matched seeds, and 200 held-out states from 12 separately searched routes. The training plan and the evaluation plan were each committed before their data existed.</p>
+    <h2 id="environment">The environment underneath</h2>
+    <p>None of this works without an environment that is fast, exact and stable. <em>Celeste</em>&rsquo;s community automation tool, CelesteTAS, plays inputs from a file and reports state over HTTP, tied to the game&rsquo;s 60&nbsp;Hz clock: about 30 steps a second, or about 18 hours of collection for one seed of the first experiment. So I built a faster path, from the agent down to the game:</p>
+    <ol class="pipe">
+      <li><span class="lang">Python</span><span class="name">PPO policy</span><span class="what">PyTorch and Stable-Baselines3, with a small CNN over the room grid.</span></li>
+      <li><span class="lang">Python</span><span class="name">Gymnasium environment</span><span class="what">Builds observations, computes reward and classifies how each episode ended.</span></li>
+      <li><span class="lang">Python</span><span class="name">Lockstep client</span><span class="what">The same <code>reset()</code> and <code>step()</code> as the slow reference bridge, over a local socket.</span></li>
+      <li><span class="lang">C#</span><span class="name">Lockstep plugin</span><span class="what">Hooks CelesteTAS&rsquo;s playback loop and replies with the new state after every frame.</span></li>
+      <li><span class="lang">Game</span><span class="name"><em>Celeste</em> with Everest</span><span class="what">The normal update with the normal frame length. Physics are never modified.</span></li>
+    </ol>
+    <div class="pull">
+      <b>~85&times;</b>
+      <p><strong>About 2,600 frames per second, resets included</strong>, up from about 30 per second through CelesteTAS&rsquo;s HTTP interface. At the old speed, collection for the first experiment alone would have taken over two days.</p>
+    </div>
+    <p>Speed isn&rsquo;t enough on its own. In RL, a subtly wrong environment doesn&rsquo;t crash; it teaches the agent something false, and the results look plausible. So the slow file-based bridge stayed in the project as the reference, and the fast one had to match it.</p>
     <div class="table-wrap">
-      <table class="results">
-        <thead><tr><th>Held out</th><th class="num">A: fixed</th><th class="num">B: varied</th><th class="num">B &minus; A</th></tr></thead>
+      <table class="ledger">
+        <thead><tr><th>Check</th><th>How</th><th>Result</th></tr></thead>
         <tbody>
-          <tr><td>Success, each route weighted equally</td><td class="num">86.8%</td><td class="num">80.9%</td><td class="num"><strong class="neg">&minus;5.8 pts</strong></td></tr>
-          <tr><td>95% interval (seeds and routes resampled)</td><td></td><td></td><td class="num">&minus;18.7 to +3.4</td></tr>
-          <tr><td>Exact paired sign-flip test</td><td></td><td></td><td class="num">p = 0.50</td></tr>
+          <tr><td>Frame fidelity</td><td>Fixed input traces played four ways: reference bridge, lockstep bridge, lockstep with 5, 50 and 500&nbsp;ms client delays, and plain TAS playback at normal speed. Traces cover a room transition with 7 dashes, spike deaths and respawns, and a pause-menu loading scene.</td><td>926 / 926 frames identical</td></tr>
+          <tr><td>Long runs</td><td>A 30-minute soak with periodic replay checks.</td><td>4,853,400 steps, 16,178 episodes, 808 / 808 replays identical, no errors</td></tr>
+          <tr><td>Fault handling</td><td>Misbehaving on purpose against the running game: stepping before reset, wrong start frames, replacing the connection mid-reset, disconnecting mid-step, and a client that stops reading replies.</td><td>13 / 13 live fault checks, including 100 rounds of replacing a connection mid-reset</td></tr>
+          <tr><td>Inputs</td><td>Every binding checked in the game, including both jump and dash keys, crouch dash, grab, and pause-menu confirm and cancel.</td><td>30 / 30 checks</td></tr>
+          <tr><td>Code</td><td>Unit tests, plus live checks against the game.</td><td>469 unit tests</td></tr>
         </tbody>
       </table>
     </div>
-    <p><strong>The declared rule was not met.</strong> Varied starts helped three seeds and hurt three. One varied-start run, seed 25, collapsed during training and scored 47.3%. It stays in the analysis.</p>
-    <p>What it tells me:</p>
-    <ul>
-      <li><strong>The Room 1 gain doesn&rsquo;t transfer automatically.</strong> Room 2&rsquo;s fixed-start arm already scored 86.8%, which left much less room to improve than Room 1&rsquo;s 52.2%.</li>
-      <li><strong>Collapse isn&rsquo;t specific to varied starts.</strong> A later training-side run repeated arm A with eight new seeds: 5 of 14 fixed-start runs from the same clone collapsed.</li>
-      <li><strong>Both arms fail in the same place.</strong> 93.5% to 99.6% of training deaths land in one stretch: a pit, a spiked block and a spiked gap. Every demonstration crosses it using a spring, and the observation has no channel for springs. Whether that causes the failures is a hypothesis these runs don&rsquo;t test.</li>
-    </ul>
-
-    <h2 id="problems">Engineering problems</h2>
     <div class="pull warn">
       <b>8 GB</b>
       <p><strong>of memory in 4 minutes.</strong> Long runs leaked 2 to 6&nbsp;MB per reset. A memory probe traced it to Everest&rsquo;s dash-trail render targets, which were never freed when a savestate replaced the level. The plugin now releases them before each reset, and memory stays flat.</p>
     </div>
     <ul>
-      <li><strong>A seed that wasn&rsquo;t a seed.</strong> Two runs with different seeds produced byte-identical episode logs. Stable-Baselines3&rsquo;s <code>load()</code> re-seeds torch, NumPy and Python globally with the saved checkpoint&rsquo;s seed, after the run has seeded itself, so every run that started from a checkpoint used the donor&rsquo;s random stream. Fixed by re-seeding after loading. The evaluation script got its own <code>--seed</code> for the same reason.</li>
-      <li><strong>A race in the first benchmark.</strong> An early 1,000-step probe timed out because a previous playback&rsquo;s frame number satisfied the new playback&rsquo;s start condition. That&rsquo;s why the real bridge tracks numbered sessions instead of trusting frame numbers.</li>
+      <li><strong>A seed that wasn&rsquo;t a seed.</strong> Two runs with different seeds produced byte-identical episode logs. Stable-Baselines3&rsquo;s <code>load()</code> re-seeds torch, NumPy and Python globally with the saved checkpoint&rsquo;s seed, after the run has seeded itself, so every run that started from a checkpoint used the donor&rsquo;s random stream. Fixed by re-seeding after loading. For a study built on matched seeds and lineages, this one mattered.</li>
       <li><strong>Headless mode.</strong> It crashed in the game&rsquo;s audio library after a savestate. Rather than patch around it, the project kept the normal renderer and made stepping fast instead.</li>
     </ul>
 
     <h2 id="learned">What I learned</h2>
     <div class="lessons">
       <div>
-        <h3>ML experiments</h3>
+        <h3>Research</h3>
         <ul>
+          <li>Forgetting has no single number. Name the baseline checkpoint, the start set, the denominator and the independent unit.</li>
+          <li>A reference that never saw the old task isn&rsquo;t zero, and it isn&rsquo;t a floor.</li>
           <li>One run&rsquo;s success rate means little. The same configuration gave 0% and 98.5%.</li>
-          <li>Measure on states the policy never trained from. The fixed start made a 60% policy look like 98%.</li>
-          <li>Commit the plan and the analysis before the data, then report what it finds. Room 2 is published because the plan said it would be.</li>
-          <li>Check how a result was selected. My own preliminary comparison was post-selected, and I withdrew it.</li>
+          <li>Commit the plan before the data, then publish what it finds, including the Room 2 null and my own withdrawn comparison.</li>
         </ul>
       </div>
       <div>
@@ -303,7 +368,7 @@
 
   <div class="post-end">
     <a class="repo" href="../#work"><svg class="chev flip"><use href="#chev"/></svg> All work</a>
-    <a class="repo" href="https://github.com/shihaab453/celeste-rl">Code and full reports on GitHub <svg class="chev"><use href="#chev"/></svg></a>
+    <a class="repo" href="https://github.com/shihaab453/celeste-rl/blob/technical-report-v1.0/docs/technical-report.md">Read the technical report <svg class="chev"><use href="#chev"/></svg></a>
   </div>
   </div>
 </div>
